@@ -34,7 +34,7 @@ class SendEmailFromClipboardAutocloseableActivity : ComponentActivity() {
                     this@SendEmailFromClipboardAutocloseableActivity,
                     when (clipboardContent) {
                         null -> "Failed or clipboard is empty"
-                        else -> "Email '${clipboardContent.take(10)}' is sent"
+                        else -> "Email '${clipboardContent.ellipsis(10)}' is sent"
                     },
                     Toast.LENGTH_SHORT
                 ).show()

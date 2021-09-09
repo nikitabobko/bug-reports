@@ -7,9 +7,7 @@ import javax.mail.internet.MimeMessage
 
 object EmailManager {
 
-    fun sendEmailToMyself(subject: String, text: String) {
-//        Thread.sleep(1000)
-//        return
+    fun sendEmailToMyself(subject: String, text: String, work: Boolean = false) {
         val username = "foo@example.com"
         val password = ""
 
@@ -26,7 +24,10 @@ object EmailManager {
         })
 
         val message = MimeMessage(session).apply {
-            setRecipients(Message.RecipientType.TO, InternetAddress.parse("foo@example.com"))
+            setRecipients(
+                Message.RecipientType.TO,
+                InternetAddress.parse(if (work) "work@example.com" else username)
+            )
             this.subject = subject
             setText(text)
         }

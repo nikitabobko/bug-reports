@@ -1,6 +1,5 @@
 package bobko.email.todo
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -10,7 +9,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import bobko.email.todo.ui.theme.EmailTodoTheme
@@ -41,49 +39,30 @@ fun MainActivityScreen() {
         Scaffold(
             floatingActionButton = {
                 if (!sendInProgress) {
-//                    Row {
-//                        Button(onClick = { /*TODO*/ }) {
-//                            Text(text = "JB todo")
-//                        }
-//                        Spacer(modifier = Modifier.width(16.dp))
-//                        Button(onClick = { /*TODO*/ }) {
-//                            Text(text = "todo")
-//                        }
-//                    }
                     Column {
-                        val context = LocalContext.current
-                        FloatingActionButton(
-                            onClick = {
-                                context.startActivity(
-                                    Intent(
-                                        context,
-                                        SendEmailFromClipboardAutocloseableActivity::class.java
-                                    )
-                                )
-                            },
-                        ) { Text("Work") }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        FloatingActionButton(
-                            onClick = {
-                                scope.launch {
-                                    val (subject, text) = textFieldValue.lines().withIndex()
-                                        .partition { it.index == 0 }
-                                        .let { (subjectLines, textLines) ->
-                                            listOf(subjectLines, textLines)
-                                        }
-                                        .map { subjectOrText ->
-                                            subjectOrText.joinToString("\n") { it.value }.trim()
-                                        }
-                                    sendInProgress = true
-                                    textFieldValue = "Sending..."
-                                    withContext(Dispatchers.IO) {
-                                        EmailManager.sendEmailToMyself(subject, text)
+                        val onClick = { isWork: Boolean ->
+                            scope.launch {
+                                val (subject, text) = textFieldValue.lines().withIndex()
+                                    .partition { it.index == 0 }
+                                    .let { (subjectLines, textLines) ->
+                                        listOf(subjectLines, textLines)
                                     }
-                                    textFieldValue = ""
-                                    sendInProgress = false
+                                    .map { subjectOrText ->
+                                        subjectOrText.joinToString("\n") { it.value }.trim()
+                                    }
+                                sendInProgress = true
+                                textFieldValue = "Sending..."
+                                withContext(Dispatchers.IO) {
+                                    EmailManager.sendEmailToMyself(subject, text, isWork)
                                 }
-                            },
-                        ) { Text("Send") }
+                                textFieldValue = ""
+                                sendInProgress = false
+                            }
+                            Unit
+                        }
+                        FloatingActionButton(onClick = { onClick(true) }) { Text("Work") }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        FloatingActionButton(onClick = { onClick(false) }) { Text("Send") }
                     }
                 }
             },
