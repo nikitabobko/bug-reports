@@ -14,6 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import bobko.email.todo.ui.theme.EmailTodoTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,18 +35,28 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainActivityScreen() {
     EmailTodoTheme {
+        var sendInProgress by remember { mutableStateOf(false) }
         var textFieldValue by remember { mutableStateOf(TextFieldValue()) }
+        val scope = rememberCoroutineScope()
         Scaffold(
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-//                        GmailManager.sendEmailToMyself(
-//                            textFieldValue.text.lines().first().trim(),
-//                            textFieldValue.text.lines().drop(1).joinToString("\n").trim()
-//                        )
-                        textFieldValue = TextFieldValue()
-                    },
-                ) { Text("Send") }
+                if (!sendInProgress) {
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch {
+                                val subject = textFieldValue.text.lines().first().trim()
+                                val text = textFieldValue.text.lines().drop(1).joinToString("\n").trim()
+                                sendInProgress = true
+                                textFieldValue = TextFieldValue("In progress...")
+                                withContext(Dispatchers.IO) {
+                                    GmailManager.sendEmailToMyself(subject, text)
+                                }
+                                textFieldValue = TextFieldValue()
+                                sendInProgress = false
+                            }
+                        },
+                    ) { Text("Send") }
+                }
             },
             topBar = {
                 TopAppBar(title = { Text("Email TODO") })
@@ -60,7 +73,8 @@ fun MainActivityScreen() {
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent
-                    )
+                    ),
+                    enabled = !sendInProgress
                 )
             }
         }
