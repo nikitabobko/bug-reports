@@ -25,15 +25,15 @@
         </activity>
 
         <activity
-            android:name=".GetClipboardTextActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:name=".SendEmailFromClipboardAutocloseableActivity"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.Dialog" />
 
         <service
             android:name=".Tile"
             android:icon="@drawable/ic_baseline_email_24"
             android:label="Email TODO"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
