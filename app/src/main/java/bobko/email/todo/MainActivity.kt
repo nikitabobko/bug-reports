@@ -44,12 +44,11 @@ fun MainActivityScreen() {
                     FloatingActionButton(
                         onClick = {
                             scope.launch {
-                                val subject = textFieldValue.text.lines().first().trim()
-                                val text = textFieldValue.text.lines().drop(1).joinToString("\n").trim()
+                                val text = textFieldValue.text
                                 sendInProgress = true
-                                textFieldValue = TextFieldValue("In progress...")
+                                textFieldValue = TextFieldValue("Sending...")
                                 withContext(Dispatchers.IO) {
-                                    GmailManager.sendEmailToMyself(subject, text)
+                                    GmailManager.sendEmailToMyself(text)
                                 }
                                 textFieldValue = TextFieldValue()
                                 sendInProgress = false

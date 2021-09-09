@@ -6,6 +6,13 @@ import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 
 object GmailManager {
+    fun sendEmailToMyself(text: String) {
+        sendEmailToMyself(
+            text.lines().first().trim(),
+            text.lines().drop(1).joinToString("\n").trim()
+        )
+    }
+
     fun sendEmailToMyself(subject: String, text: String) {
         val username = "foo@example.com"
         val password = ""
