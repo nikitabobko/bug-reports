@@ -43,18 +43,11 @@ fun MainActivityScreen() {
                 Row {
                     val onClick = { isWork: Boolean ->
                         scope.launch {
-                            val (subject, text) = textFieldValue.lines().withIndex()
-                                .partition { it.index == 0 }
-                                .let { (subjectLines, textLines) ->
-                                    listOf(subjectLines, textLines)
-                                }
-                                .map { subjectOrText ->
-                                    subjectOrText.joinToString("\n") { it.value }.trim()
-                                }
+                            val text = textFieldValue
                             sendInProgress = true
                             textFieldValue = "Sending..."
                             withContext(Dispatchers.IO) {
-                                EmailManager.sendEmailToMyself(subject, text, isWork)
+                                EmailManager.sendEmailToMyself(text, isWork)
                             }
                             textFieldValue = ""
                             sendInProgress = false

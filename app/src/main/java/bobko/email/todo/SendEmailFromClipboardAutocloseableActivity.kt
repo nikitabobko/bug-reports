@@ -24,11 +24,10 @@ class SendEmailFromClipboardAutocloseableActivity : ComponentActivity() {
         if (hasFocus) {
             val clipboardManager = getSystemService<ClipboardManager>()
             val clipboard = clipboardManager?.primaryClip?.getItemAt(0)?.text?.toString()
-            val primaryClipDescription = clipboardManager?.primaryClipDescription
             lifecycleScope.launch(Dispatchers.Main) {
                 if (clipboard != null) {
                     withContext(Dispatchers.IO) {
-                        EmailManager.sendEmailToMyself(clipboard, "")
+                        EmailManager.sendEmailToMyself(clipboard)
                     }
                 }
                 Toast.makeText(
@@ -50,7 +49,7 @@ class SendEmailFromClipboardAutocloseableActivity : ComponentActivity() {
                 Intent(tile, SendEmailFromClipboardAutocloseableActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_NO_ANIMATION or
-                            Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
                             Intent.FLAG_ACTIVITY_NO_HISTORY
                 }
             )

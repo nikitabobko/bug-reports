@@ -7,7 +7,12 @@ import javax.mail.internet.MimeMessage
 
 object EmailManager {
 
-    fun sendEmailToMyself(subject: String, text: String, work: Boolean = false) {
+    fun sendEmailToMyself(text: String, work: Boolean = false) {
+        val (subject, body) = if (text.length > 50) "*" to text else text to ""
+        sendEmailToMyself(subject, body)
+    }
+
+    private fun sendEmailToMyself(subject: String, body: String, work: Boolean = false) {
         val username = "foo@example.com"
         val password = ""
 
@@ -29,7 +34,7 @@ object EmailManager {
                 InternetAddress.parse(if (work) "work@example.com" else username)
             )
             this.subject = subject
-            setText(text)
+            setText(body)
         }
 
         Transport.send(message)
