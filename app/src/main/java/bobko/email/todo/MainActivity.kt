@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,44 +40,50 @@ fun MainActivityScreen() {
         val scope = rememberCoroutineScope()
         Scaffold(
             floatingActionButton = {
-                if (!sendInProgress) {
-                    Column {
-                        val onClick = { isWork: Boolean ->
-                            scope.launch {
-                                val (subject, text) = textFieldValue.lines().withIndex()
-                                    .partition { it.index == 0 }
-                                    .let { (subjectLines, textLines) ->
-                                        listOf(subjectLines, textLines)
-                                    }
-                                    .map { subjectOrText ->
-                                        subjectOrText.joinToString("\n") { it.value }.trim()
-                                    }
-                                sendInProgress = true
-                                textFieldValue = "Sending..."
-                                withContext(Dispatchers.IO) {
-                                    EmailManager.sendEmailToMyself(subject, text, isWork)
+                Row {
+                    val onClick = { isWork: Boolean ->
+                        scope.launch {
+                            val (subject, text) = textFieldValue.lines().withIndex()
+                                .partition { it.index == 0 }
+                                .let { (subjectLines, textLines) ->
+                                    listOf(subjectLines, textLines)
                                 }
-                                textFieldValue = ""
-                                sendInProgress = false
+                                .map { subjectOrText ->
+                                    subjectOrText.joinToString("\n") { it.value }.trim()
+                                }
+                            sendInProgress = true
+                            textFieldValue = "Sending..."
+                            withContext(Dispatchers.IO) {
+                                EmailManager.sendEmailToMyself(subject, text, isWork)
                             }
-                            Unit
+                            textFieldValue = ""
+                            sendInProgress = false
                         }
-                        FloatingActionButton(onClick = { onClick(true) }) { Text("Work") }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        FloatingActionButton(onClick = { onClick(false) }) { Text("Send") }
+                        Unit
                     }
+                    Button(
+                        onClick = { onClick(true) },
+                        enabled = !sendInProgress && textFieldValue.isNotBlank()
+                    ) { Text("Work") }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = { onClick(false) },
+                        enabled = !sendInProgress && textFieldValue.isNotBlank()
+                    ) { Text("Send") }
                 }
             },
             topBar = {
                 TopAppBar(title = { Text("Email TODO") })
             },
         ) {
+            val focusRequester = remember { FocusRequester() }
             TextField(
                 value = textFieldValue,
                 onValueChange = { textFieldValue = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(),
+                    .fillMaxHeight()
+                    .focusRequester(focusRequester),
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
@@ -84,6 +92,10 @@ fun MainActivityScreen() {
                 ),
                 enabled = !sendInProgress
             )
+            DisposableEffect(Unit) {
+                focusRequester.requestFocus()
+                onDispose { }
+            }
         }
     }
 }
