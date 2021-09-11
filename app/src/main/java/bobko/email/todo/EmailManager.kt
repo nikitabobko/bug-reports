@@ -13,9 +13,11 @@ object EmailManager {
     }
 
     fun sendEmailToMyself(subject: String, body: String, work: Boolean = false) {
-        val email = "foo@example.com"
-        val workEmail = "work@example.com"
+        val username = "foo@example.com"
         val password = ""
+
+        val todoEmail = "foo+todo@example.com"
+        val workEmail = "foo+work@example.com"
 
         val prop = Properties()
         prop["mail.smtp.host"] = "smtp.gmail.com"
@@ -25,14 +27,14 @@ object EmailManager {
 
         val session = Session.getInstance(prop, object : Authenticator() {
             override fun getPasswordAuthentication(): PasswordAuthentication {
-                return PasswordAuthentication(email, password)
+                return PasswordAuthentication(username, password)
             }
         })
 
         val message = MimeMessage(session).apply {
             setRecipients(
                 Message.RecipientType.TO,
-                InternetAddress.parse(if (work) workEmail else email)
+                InternetAddress.parse(if (work) workEmail else todoEmail)
             )
             this.subject = subject
             setText(body)
