@@ -1,6 +1,9 @@
 package bobko.email.todo
 
+import android.app.AppOpsManager
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,9 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.getSystemService
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,6 +33,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             MainActivityScreen()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Look for usages of android.app.usage.UsageStatsManager in the app
+        if (!isUsageAccessGranted()) {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
+    }
+
+    private fun isUsageAccessGranted(): Boolean {
+        val applicationInfo = packageManager.getApplicationInfo(packageName, 0)
+        val appOpsManager = getSystemService<AppOpsManager>()!!
+        return AppOpsManager.MODE_ALLOWED == appOpsManager.checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            applicationInfo.uid, applicationInfo.packageName
+        )
     }
 }
 

@@ -12,7 +12,7 @@ object EmailManager {
         sendEmailToMyself(subject, body, work)
     }
 
-    private fun sendEmailToMyself(subject: String, body: String, work: Boolean = false) {
+    fun sendEmailToMyself(subject: String, body: String, work: Boolean = false) {
         val email = "foo@example.com"
         val workEmail = "work@example.com"
         val password = ""

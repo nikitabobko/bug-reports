@@ -22,21 +22,23 @@ class SendEmailFromClipboardAutocloseableActivity : ComponentActivity() {
         super.onWindowFocusChanged(hasFocus)
         // Since Android Q it's necessary for the app to have focus to be able to access clipboard.
         if (hasFocus) {
+            val lastUsedApp = getLastUsedAppLabel() ?: "Unknown app"
             val clipboardManager = getSystemService<ClipboardManager>()
-            val clipboard = clipboardManager?.primaryClip?.getItemAt(0)?.text?.toString()
+            val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
             lifecycleScope.launch(Dispatchers.Main) {
+                val isWork = lastUsedApp == "Slack"
                 if (clipboard != null) {
                     withContext(Dispatchers.IO) {
-                        EmailManager.sendEmailToMyself(clipboard)
+                        EmailManager.sendEmailToMyself("From $lastUsedApp", clipboard, isWork)
                     }
                 }
                 Toast.makeText(
                     this@SendEmailFromClipboardAutocloseableActivity,
                     when (clipboard) {
                         null -> "Failed or clipboard is empty"
-                        else -> "Email '${clipboard.ellipsis(10)}' is sent"
+                        else -> "Email [$lastUsedApp, isWork=$isWork] '${clipboard.ellipsis(20)}' is sent"
                     },
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_LONG
                 ).show()
                 finish()
             }
