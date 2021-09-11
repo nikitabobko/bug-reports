@@ -9,11 +9,12 @@ object EmailManager {
 
     fun sendEmailToMyself(text: String, work: Boolean = false) {
         val (subject, body) = if (text.length > 50) "*" to text else text to ""
-        sendEmailToMyself(subject, body)
+        sendEmailToMyself(subject, body, work)
     }
 
     private fun sendEmailToMyself(subject: String, body: String, work: Boolean = false) {
-        val username = "foo@example.com"
+        val email = "foo@example.com"
+        val workEmail = "work@example.com"
         val password = ""
 
         val prop = Properties()
@@ -24,14 +25,14 @@ object EmailManager {
 
         val session = Session.getInstance(prop, object : Authenticator() {
             override fun getPasswordAuthentication(): PasswordAuthentication {
-                return PasswordAuthentication(username, password)
+                return PasswordAuthentication(email, password)
             }
         })
 
         val message = MimeMessage(session).apply {
             setRecipients(
                 Message.RecipientType.TO,
-                InternetAddress.parse(if (work) "work@example.com" else username)
+                InternetAddress.parse(if (work) workEmail else email)
             )
             this.subject = subject
             setText(body)
