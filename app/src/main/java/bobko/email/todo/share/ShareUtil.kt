@@ -15,7 +15,7 @@ fun ComponentActivity.saveToEmailAndCloseActivity(text: String?, callerAppLabel:
         val isWork = callerAppLabel == "Slack"
         if (text != null) {
             withContext(Dispatchers.IO) {
-                EmailManager.sendEmailToMyself("From $callerAppLabel", text, isWork)
+                EmailManager.sendEmailToMyself("From '$callerAppLabel'", text, isWork)
             }
         }
         Toast.makeText(
