@@ -7,7 +7,6 @@ import android.service.quicksettings.TileService
 import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
 import bobko.email.todo.getLastUsedAppLabel
-import bobko.email.todo.saveToEmailAndCloseActivity
 
 class SendEmailFromClipboard : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,10 +18,9 @@ class SendEmailFromClipboard : ComponentActivity() {
         super.onWindowFocusChanged(hasFocus)
         // Since Android Q it's necessary for the app to have focus to be able to access clipboard.
         if (hasFocus) {
-            val lastUsedApp = getLastUsedAppLabel() ?: "Unknown app"
             val clipboardManager = getSystemService<ClipboardManager>()
             val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
-            saveToEmailAndCloseActivity(clipboard, lastUsedApp)
+            saveToEmailAndCloseActivity(clipboard, getLastUsedAppLabel())
         }
     }
 

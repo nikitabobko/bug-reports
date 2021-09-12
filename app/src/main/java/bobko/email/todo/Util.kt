@@ -4,8 +4,9 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import androidx.core.content.getSystemService
 
-fun String.ellipsis(n: Int): String {
-    return take(n).trim() + if (length > n) "..." else ""
+fun Context.getAppLabelByPackageName(packageName: String): String {
+    return packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0))
+        .toString()
 }
 
 fun Context.getLastUsedAppLabel(): String? {
@@ -21,8 +22,7 @@ fun Context.getLastUsedAppLabel(): String? {
         .maxByOrNull { it.lastTimeUsed }
         .orElse { return null }
         .packageName
-    return packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0))
-        .toString()
+    return getAppLabelByPackageName(packageName)
 }
 
 inline fun <T> T?.orElse(block: () -> T): T = this ?: block()
