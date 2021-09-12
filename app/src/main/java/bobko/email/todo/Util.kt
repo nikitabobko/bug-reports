@@ -2,11 +2,16 @@ package bobko.email.todo
 
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.pm.PackageManager.NameNotFoundException
 import androidx.core.content.getSystemService
 
-fun Context.getAppLabelByPackageName(packageName: String): String {
-    return packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0))
-        .toString()
+fun Context.getAppLabelByPackageName(packageName: String): String? {
+    return try {
+        packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0))
+            .toString()
+    } catch (ex: NameNotFoundException) {
+        null
+    }
 }
 
 fun Context.getLastUsedAppLabel(): String? {
