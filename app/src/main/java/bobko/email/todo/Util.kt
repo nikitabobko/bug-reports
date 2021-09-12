@@ -17,7 +17,7 @@ fun Context.getLastUsedAppLabel(): String? {
             time
         )
     val packageName = stats.asSequence()
-        .filter { it.packageName != packageName }
+        .filter { it.packageName != packageName && it.packageName != "android" }
         .maxByOrNull { it.lastTimeUsed }
         .orElse { return null }
         .packageName

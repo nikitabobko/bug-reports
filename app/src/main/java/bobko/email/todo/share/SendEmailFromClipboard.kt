@@ -1,18 +1,15 @@
-package bobko.email.todo
+package bobko.email.todo.share
 
 import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import android.service.quicksettings.TileService
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import bobko.email.todo.getLastUsedAppLabel
+import bobko.email.todo.saveToEmailAndCloseActivity
 
-class SendEmailFromClipboardAutocloseableActivity : ComponentActivity() {
+class SendEmailFromClipboard : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setFinishOnTouchOutside(false)
@@ -25,30 +22,14 @@ class SendEmailFromClipboardAutocloseableActivity : ComponentActivity() {
             val lastUsedApp = getLastUsedAppLabel() ?: "Unknown app"
             val clipboardManager = getSystemService<ClipboardManager>()
             val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
-            lifecycleScope.launch(Dispatchers.Main) {
-                val isWork = lastUsedApp == "Slack"
-                if (clipboard != null) {
-                    withContext(Dispatchers.IO) {
-                        EmailManager.sendEmailToMyself("From $lastUsedApp", clipboard, isWork)
-                    }
-                }
-                Toast.makeText(
-                    this@SendEmailFromClipboardAutocloseableActivity,
-                    when (clipboard) {
-                        null -> "Failed or clipboard is empty"
-                        else -> "Email [$lastUsedApp, isWork=$isWork] '${clipboard.ellipsis(20)}' is sent"
-                    },
-                    Toast.LENGTH_LONG
-                ).show()
-                finish()
-            }
+            saveToEmailAndCloseActivity(clipboard, lastUsedApp)
         }
     }
 
     companion object {
         fun startActivityAndCollapse(tile: TileService) {
             tile.startActivityAndCollapse(
-                Intent(tile, SendEmailFromClipboardAutocloseableActivity::class.java).apply {
+                Intent(tile, SendEmailFromClipboard::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_NO_ANIMATION or
                             Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
