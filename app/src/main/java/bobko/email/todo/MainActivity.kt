@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
+import bobko.email.todo.EmailManager.sendEmailToMyself
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -67,11 +68,13 @@ fun MainActivityScreen() {
                 Row {
                     val onClick = { isWork: Boolean ->
                         scope.launch {
-                            val text = textFieldValue
+                            val (subject, body) =
+                                if (textFieldValue.length > 50) "*" to textFieldValue
+                                else textFieldValue to ""
                             sendInProgress = true
                             textFieldValue = "Sending..."
                             withContext(Dispatchers.IO) {
-                                EmailManager.sendEmailToMyself(text, isWork)
+                                sendEmailToMyself(subject, body, isWork)
                             }
                             textFieldValue = ""
                             sendInProgress = false
