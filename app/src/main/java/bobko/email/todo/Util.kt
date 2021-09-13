@@ -3,6 +3,7 @@ package bobko.email.todo
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.pm.PackageManager.NameNotFoundException
+import android.widget.Toast
 import androidx.core.content.getSystemService
 
 fun Context.getAppLabelByPackageName(packageName: String): String? {
@@ -31,3 +32,7 @@ fun Context.getLastUsedAppLabel(): String? {
 }
 
 inline fun <T> T?.orElse(block: () -> T): T = this ?: block()
+
+fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, text, duration).show()
+}

@@ -11,8 +11,10 @@ class ShareActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val sharedString = intent.takeIf { it?.action == Intent.ACTION_SEND }
             ?.getStringExtra(Intent.EXTRA_TEXT)
-        val callerLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
-            ?: getLastUsedAppLabel()
-        saveToEmailAndCloseActivity(sharedString, callerLabel)
+        val callerAppLabelLazy = {
+            referrer?.host?.let { getAppLabelByPackageName(it) }
+                ?: getLastUsedAppLabel()
+        }
+        saveToEmailAndCloseActivity(sharedString, callerAppLabelLazy)
     }
 }

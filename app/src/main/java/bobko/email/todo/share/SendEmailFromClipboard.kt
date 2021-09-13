@@ -20,7 +20,8 @@ class SendEmailFromClipboard : ComponentActivity() {
         if (hasFocus) {
             val clipboardManager = getSystemService<ClipboardManager>()
             val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
-            saveToEmailAndCloseActivity(clipboard, getLastUsedAppLabel())
+            val callerAppLabelLazy = { getLastUsedAppLabel() }
+            saveToEmailAndCloseActivity(clipboard, callerAppLabelLazy)
         }
     }
 
