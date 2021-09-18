@@ -20,7 +20,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import bobko.email.todo.EmailManager.sendEmailToMyself
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -132,11 +131,11 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
             Row {
                 val onClick = { isWork: Boolean ->
                     scope.launch {
-                        val body = todoTextDraft.text
+                        val body = todoTextDraft.text.trim()
                         sendInProgress = true
                         todoTextDraft = TextFieldValue("")
                         withContext(Dispatchers.IO) {
-                            sendEmailToMyself("|", body, isWork)
+                            EmailManager.sendEmailToMyself("|", body, isWork)
                         }
                         sendInProgress = false
                         showToast("Successful!")
