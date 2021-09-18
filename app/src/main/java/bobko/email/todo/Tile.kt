@@ -1,10 +1,12 @@
 package bobko.email.todo
 
+import android.content.Intent
 import android.service.quicksettings.TileService
-import bobko.email.todo.share.SendEmailFromClipboard
 
 class Tile : TileService() {
     override fun onClick() {
-        SendEmailFromClipboard.startActivityAndCollapse(this)
+        startActivityAndCollapse(MainActivity.getIntent(this, isStartedFromTile = true).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        })
     }
 }
