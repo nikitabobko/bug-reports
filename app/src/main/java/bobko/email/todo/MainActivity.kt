@@ -118,7 +118,9 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
                     todoTextDraft = it
                     viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
                 },
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
