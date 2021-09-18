@@ -21,7 +21,8 @@
             android:exported="true"
             android:label="Email TODO"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Design.NoActionBar"
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:excludeFromRecents="true"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

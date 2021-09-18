@@ -12,8 +12,10 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
@@ -62,48 +64,13 @@ fun MainActivityScreen() {
         var textFieldValue by remember { mutableStateOf("") }
         textFieldValue = textFieldValue.dropWhile { it.isWhitespace() }
         val scope = rememberCoroutineScope()
-        Scaffold(
-            scaffoldState = scaffoldState,
-            floatingActionButton = {
-                Row {
-                    val onClick = { isWork: Boolean ->
-                        scope.launch {
-                            val (subject, body) =
-                                if (textFieldValue.length > 50) "*" to textFieldValue
-                                else textFieldValue to ""
-                            sendInProgress = true
-                            textFieldValue = "Sending..."
-                            withContext(Dispatchers.IO) {
-                                sendEmailToMyself(subject, body, isWork)
-                            }
-                            textFieldValue = ""
-                            sendInProgress = false
-                            scaffoldState.snackbarHostState.showSnackbar("Successful!")
-                        }
-                        Unit
-                    }
-                    Button(
-                        onClick = { onClick(true) },
-                        enabled = !sendInProgress && textFieldValue.isNotBlank()
-                    ) { Text("Work") }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = { onClick(false) },
-                        enabled = !sendInProgress && textFieldValue.isNotBlank()
-                    ) { Text("Send") }
-                }
-            },
-            topBar = {
-                TopAppBar(title = { Text("Email TODO") })
-            },
-        ) {
+        Column(modifier = Modifier.padding(8.dp)) {
             val focusRequester = remember { FocusRequester() }
             TextField(
                 value = textFieldValue,
                 onValueChange = { textFieldValue = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight()
                     .focusRequester(focusRequester),
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent,
@@ -111,11 +78,41 @@ fun MainActivityScreen() {
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent
                 ),
-                enabled = !sendInProgress
+                enabled = !sendInProgress,
+                label = { Text("Your todo is...") }
             )
             DisposableEffect(Unit) {
                 focusRequester.requestFocus()
                 onDispose { }
+            }
+            Row {
+                val onClick = { isWork: Boolean ->
+                    scope.launch {
+                        val (subject, body) =
+                            if (textFieldValue.length > 50) "*" to textFieldValue
+                            else textFieldValue to ""
+                        sendInProgress = true
+                        textFieldValue = "Sending..."
+                        withContext(Dispatchers.IO) {
+                            sendEmailToMyself(subject, body, isWork)
+                        }
+                        textFieldValue = ""
+                        sendInProgress = false
+                        scaffoldState.snackbarHostState.showSnackbar("Successful!")
+                    }
+                    Unit
+                }
+                TextButton(onClick = { textFieldValue = "" }) { Text(text = "Clear") }
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(
+                    onClick = { onClick(true) },
+                    enabled = !sendInProgress && textFieldValue.isNotBlank()
+                ) { Text("Work") }
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(
+                    onClick = { onClick(false) },
+                    enabled = !sendInProgress && textFieldValue.isNotBlank()
+                ) { Text("Send") }
             }
         }
     }
