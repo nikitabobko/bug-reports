@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
@@ -37,13 +36,12 @@ class MainActivity : ComponentActivity() {
 
         viewModel.isStartedFromTile = intent.getBooleanExtra(IS_STARTED_FROM_TILE_INTENT_KEY, false)
 
-        val sharedString = intent.takeIf { it?.action == Intent.ACTION_SEND }
+        val sharedText = intent.takeIf { it?.action == Intent.ACTION_SEND }
             ?.getStringExtra(Intent.EXTRA_TEXT)
-        if (sharedString != null) {
+        if (sharedText != null) {
             val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
                 ?: getLastUsedAppLabel()
-            viewModel.todoTextDraft.value = composeSharedText(sharedString, callerAppLabel)
-            viewModel.finishActivityAfterSend = true
+            viewModel.contributeSharedText(sharedText, callerAppLabel)
         }
 
         setContent {
@@ -63,25 +61,12 @@ class MainActivity : ComponentActivity() {
         super.onWindowFocusChanged(hasFocus)
         // Since Android Q it's necessary for the app to have focus to be able to access clipboard.
         if (hasFocus && viewModel.isStartedFromTile) {
-            viewModel.finishActivityAfterSend = true
             val clipboardManager = getSystemService<ClipboardManager>()
             val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
             if (clipboard != null) {
-                viewModel.todoTextDraft.value = composeSharedText(clipboard, getLastUsedAppLabel())
+                viewModel.contributeSharedText(clipboard, getLastUsedAppLabel())
             }
         }
-    }
-
-    private fun composeSharedText(sharedText: String, callerAppLabel: String?): TextFieldValue {
-        val text = buildString {
-            if (callerAppLabel != null) {
-                appendLine("From: $callerAppLabel")
-                appendLine()
-            }
-            appendLine(sharedText)
-            appendLine()
-        }
-        return TextFieldValue(text, TextRange(text.length))
     }
 
     private fun isUsageAccessGranted(): Boolean {

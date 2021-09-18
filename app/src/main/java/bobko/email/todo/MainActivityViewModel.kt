@@ -1,5 +1,6 @@
 package bobko.email.todo
 
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,5 +9,26 @@ class MainActivityViewModel : ViewModel() {
     val todoTextDraft = MutableLiveData(TextFieldValue(""))
     var todoTextDraftIsChangedAtLeastOnce = MutableLiveData(false)
     var isStartedFromTile: Boolean = false
-    var finishActivityAfterSend: Boolean = false
+
+    private var isPrefilledWithSharedText: Boolean = false
+    val finishActivityAfterSend: Boolean get() = isPrefilledWithSharedText
+
+    fun contributeSharedText(sharedText: String, callerAppLabel: String?) {
+        if (todoTextDraft.value!!.text.isEmpty() && !isPrefilledWithSharedText /* Allow to prefill TextField only once */) {
+            isPrefilledWithSharedText = true
+            todoTextDraft.value = composeSharedText(sharedText, callerAppLabel)
+        }
+    }
+
+    private fun composeSharedText(sharedText: String, callerAppLabel: String?): TextFieldValue {
+        val text = buildString {
+            if (callerAppLabel != null) {
+                appendLine("From: $callerAppLabel")
+                appendLine()
+            }
+            appendLine(sharedText)
+            appendLine()
+        }
+        return TextFieldValue(text, TextRange(text.length))
+    }
 }
