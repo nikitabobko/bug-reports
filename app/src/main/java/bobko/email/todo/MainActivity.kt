@@ -110,8 +110,8 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
         var sendInProgress by remember { mutableStateOf(false) }
         var todoTextDraft by viewModel.todoTextDraft.observeAsMutableState()
         val scope = rememberCoroutineScope()
+        val focusRequester = remember { FocusRequester() }
         Column(modifier = Modifier.padding(8.dp)) {
-            val focusRequester = remember { FocusRequester() }
             TextField(
                 value = todoTextDraft,
                 onValueChange = {
@@ -130,7 +130,7 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
                 enabled = !sendInProgress,
                 label = { Text(if (sendInProgress) "Sending..." else "Your todo is...") }
             )
-            DisposableEffect(Unit) {
+            DisposableEffect(sendInProgress) {
                 focusRequester.requestFocus()
                 onDispose { }
             }
@@ -145,7 +145,6 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
                         }
                         sendInProgress = false
                         showToast("Successful!")
-                        focusRequester.requestFocus()
                         if (viewModel.finishActivityAfterSend) {
                             this@MainActivityScreen.finish()
                         }
