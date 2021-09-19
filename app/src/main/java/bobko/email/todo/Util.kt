@@ -18,6 +18,7 @@ fun Context.getAppLabelByPackageName(packageName: String): String? {
         packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0))
             .toString()
     } catch (ex: NameNotFoundException) {
+        // TODO logging
         null
     }
 }
