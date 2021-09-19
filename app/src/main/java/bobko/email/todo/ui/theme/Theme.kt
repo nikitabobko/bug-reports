@@ -11,9 +11,10 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun EmailTodoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     MaterialTheme(
-        colors =
+        colors = run {
             if (darkTheme) darkColors(primary = Color(0xff1ca15f))
-            else lightColors(primary = Color(0xff1ca15f)),
+            else lightColors(primary = Color(0xff1ca15f))
+        },
         content = {
             Surface {
                 content()

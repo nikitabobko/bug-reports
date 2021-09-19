@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
         if (sharedText != null) {
             val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
                 ?: getLastUsedAppLabel()
-            viewModel.contributeSharedText(sharedText, callerAppLabel)
+            viewModel.prefillSharedText(sharedText, callerAppLabel)
         }
 
         setContent {
@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
             val clipboardManager = getSystemService<ClipboardManager>()
             val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
             if (clipboard != null) {
-                viewModel.contributeSharedText(clipboard, getLastUsedAppLabel())
+                viewModel.prefillSharedText(clipboard, getLastUsedAppLabel())
             }
         }
     }
@@ -124,7 +124,7 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
                     scope.launch {
                         val body = todoTextDraft.text.trim()
                         sendInProgress = true
-                        todoTextDraft = TextFieldValue("")
+                        todoTextDraft = TextFieldValue()
                         withContext(Dispatchers.IO) {
                             EmailManager.sendEmailToMyself("|", body, isWork)
                         }
@@ -137,7 +137,7 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
                     Unit
                 }
                 TextButton(
-                    onClick = { todoTextDraft = TextFieldValue("") },
+                    onClick = { todoTextDraft = TextFieldValue() },
                     enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
                 ) { Text(text = "Clear") }
                 Spacer(modifier = Modifier.weight(1f))

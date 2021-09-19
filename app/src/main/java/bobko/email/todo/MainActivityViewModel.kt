@@ -6,14 +6,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class MainActivityViewModel : ViewModel() {
-    val todoTextDraft = MutableLiveData(TextFieldValue(""))
+    val todoTextDraft = MutableLiveData(TextFieldValue())
     var todoTextDraftIsChangedAtLeastOnce = MutableLiveData(false)
     var isStartedFromTile: Boolean = false
 
     private var isPrefilledWithSharedText: Boolean = false
     val finishActivityAfterSend: Boolean get() = isPrefilledWithSharedText
 
-    fun contributeSharedText(sharedText: String, callerAppLabel: String?) {
+    fun prefillSharedText(sharedText: String, callerAppLabel: String?) {
         if (todoTextDraft.value!!.text.isEmpty() && !isPrefilledWithSharedText /* Allow to prefill TextField only once */) {
             isPrefilledWithSharedText = true
             todoTextDraft.value = composeSharedText(sharedText, callerAppLabel)
