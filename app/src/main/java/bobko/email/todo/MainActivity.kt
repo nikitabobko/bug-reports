@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.view.Gravity
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,6 +34,8 @@ class MainActivity : ComponentActivity() {
 
         // Some magic to show keyboard on Activity start
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+
+        window.setGravity(Gravity.BOTTOM)
 
         viewModel.isStartedFromTile = intent.getBooleanExtra(IS_STARTED_FROM_TILE_INTENT_KEY, false)
 
