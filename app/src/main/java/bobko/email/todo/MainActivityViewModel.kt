@@ -14,6 +14,7 @@ class MainActivityViewModel : ViewModel() {
     val finishActivityAfterSend: Boolean get() = isPrefilledWithSharedText
 
     fun prefillSharedText(sharedText: String, callerAppLabel: String?) {
+        require(sharedText.isNotBlank())
         if (todoTextDraft.value!!.text.isEmpty() && !isPrefilledWithSharedText /* Allow to prefill TextField only once */) {
             isPrefilledWithSharedText = true
             todoTextDraft.value = composeSharedText(sharedText, callerAppLabel)

@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
 
         val sharedText = intent.takeIf { it?.action == Intent.ACTION_SEND }
             ?.getStringExtra(Intent.EXTRA_TEXT)
-        if (sharedText != null) {
+        if (sharedText?.isNotBlank() == true) {
             val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
                 ?: getLastUsedAppLabel()
             viewModel.prefillSharedText(sharedText, callerAppLabel)
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
         if (hasFocus && viewModel.isStartedFromTile) {
             val clipboardManager = getSystemService<ClipboardManager>()
             val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
-            if (clipboard != null) {
+            if (clipboard?.isNotBlank() == true) {
                 viewModel.prefillSharedText(clipboard, getLastUsedAppLabel())
             }
         }
