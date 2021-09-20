@@ -23,13 +23,13 @@ class MainActivityViewModel : ViewModel() {
 
     private fun composeSharedText(sharedText: String, callerAppLabel: String?): TextFieldValue {
         val text = buildString {
+            appendLine()
+            appendLine()
             if (callerAppLabel != null) {
                 appendLine("From: $callerAppLabel")
-                appendLine()
             }
-            appendLine(sharedText)
-            appendLine()
+            append(sharedText)
         }
-        return TextFieldValue(text, TextRange(text.length))
+        return TextFieldValue(text)
     }
 }
