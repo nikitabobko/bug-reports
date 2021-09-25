@@ -9,7 +9,7 @@ android {
     compileSdkVersion 31
     defaultConfig {
         applicationId "bobko.email.todo"
-        minSdk 24
+        minSdk 22
         targetSdk 31
         versionCode 1
         versionName "1.0"
