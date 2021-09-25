@@ -15,10 +15,6 @@ fun EmailTodoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
             if (darkTheme) darkColors(primary = Color(0xff1ca15f))
             else lightColors(primary = Color(0xff1ca15f))
         },
-        content = {
-            Surface {
-                content()
-            }
-        }
+        content = content
     )
 }

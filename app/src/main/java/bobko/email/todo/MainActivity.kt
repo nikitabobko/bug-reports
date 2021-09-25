@@ -7,14 +7,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Gravity
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -35,8 +38,6 @@ class MainActivity : ComponentActivity() {
         // Some magic to show keyboard on Activity start
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
-        window.setGravity(Gravity.BOTTOM)
-
         viewModel.isStartedFromTile = intent.getBooleanExtra(IS_STARTED_FROM_TILE_INTENT_KEY, false)
 
         val sharedText = intent.takeIf { it?.action == Intent.ACTION_SEND }
@@ -50,6 +51,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             MainActivityScreen(viewModel)
         }
+        window.setGravity(Gravity.BOTTOM)
+        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     override fun onStart() {
@@ -99,60 +102,62 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
         var todoTextDraft by viewModel.todoTextDraft.observeAsMutableState()
         val scope = rememberCoroutineScope()
         val focusRequester = remember { FocusRequester() }
-        Column(modifier = Modifier.padding(8.dp)) {
-            TextField(
-                value = todoTextDraft,
-                onValueChange = {
-                    todoTextDraft = it
-                    viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                enabled = !sendInProgress,
-                label = { Text(if (sendInProgress) "Sending..." else "Your todo is...") }
-            )
-            DisposableEffect(sendInProgress) {
-                focusRequester.requestFocus()
-                onDispose { }
-            }
-            Row {
-                val onClick = { isWork: Boolean ->
-                    scope.launch {
-                        val body = todoTextDraft.text.trim()
-                        sendInProgress = true
-                        todoTextDraft = TextFieldValue()
-                        withContext(Dispatchers.IO) {
-                            EmailManager.sendEmailToMyself("|", body, isWork)
-                        }
-                        sendInProgress = false
-                        showToast("Successful!")
-                        if (viewModel.finishActivityAfterSend) {
-                            this@MainActivityScreen.finish()
-                        }
-                    }
-                    Unit
+        Surface(modifier = Modifier.clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))) {
+            Column(modifier = Modifier.padding(8.dp)) {
+                TextField(
+                    value = todoTextDraft,
+                    onValueChange = {
+                        todoTextDraft = it
+                        viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    ),
+                    enabled = !sendInProgress,
+                    label = { Text(if (sendInProgress) "Sending..." else "Your todo is...") }
+                )
+                DisposableEffect(sendInProgress) {
+                    focusRequester.requestFocus()
+                    onDispose { }
                 }
-                TextButton(
-                    onClick = { todoTextDraft = TextFieldValue() },
-                    enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                ) { Text(text = "Clear") }
-                Spacer(modifier = Modifier.weight(1f))
-                TextButton(
-                    onClick = { onClick(true) },
-                    enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                ) { Text("Work") }
-                Spacer(modifier = Modifier.width(8.dp))
-                TextButton(
-                    onClick = { onClick(false) },
-                    enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                ) { Text("Send") }
+                Row {
+                    val onClick = { isWork: Boolean ->
+                        scope.launch {
+                            val body = todoTextDraft.text.trim()
+                            sendInProgress = true
+                            todoTextDraft = TextFieldValue()
+                            withContext(Dispatchers.IO) {
+                                EmailManager.sendEmailToMyself("|", body, isWork)
+                            }
+                            sendInProgress = false
+                            showToast("Successful!")
+                            if (viewModel.finishActivityAfterSend) {
+                                this@MainActivityScreen.finish()
+                            }
+                        }
+                        Unit
+                    }
+                    TextButton(
+                        onClick = { todoTextDraft = TextFieldValue() },
+                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                    ) { Text(text = "Clear") }
+                    Spacer(modifier = Modifier.weight(1f))
+                    TextButton(
+                        onClick = { onClick(true) },
+                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                    ) { Text("Work") }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        onClick = { onClick(false) },
+                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                    ) { Text("Send") }
+                }
             }
         }
     }
