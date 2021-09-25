@@ -15,7 +15,11 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -24,7 +28,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
+import androidx.lifecycle.LiveData
+import bobko.email.todo.model.Account
+import bobko.email.todo.settings.SettingsActivity
 import bobko.email.todo.ui.theme.EmailTodoTheme
+import bobko.email.todo.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -48,8 +56,13 @@ class MainActivity : ComponentActivity() {
             viewModel.prefillSharedText(sharedText, callerAppLabel)
         }
 
+        val accounts = PrefManager.readAccounts(application)
+        if (accounts.value!!.count() == 0) {
+            finish()
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
         setContent {
-            MainActivityScreen(viewModel)
+            MainActivityScreen(viewModel, accounts)
         }
         window.setGravity(Gravity.BOTTOM)
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -96,7 +109,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
+fun MainActivity.MainActivityScreen(
+    viewModel: MainActivityViewModel,
+    accounts: LiveData<SizedSequence<Account>>
+) {
     EmailTodoTheme {
         var sendInProgress by remember { mutableStateOf(false) }
         var todoTextDraft by viewModel.todoTextDraft.observeAsMutableState()
@@ -126,14 +142,24 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
                     focusRequester.requestFocus()
                     onDispose { }
                 }
-                Row {
-                    val onClick = { isWork: Boolean ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(
+                        onClick = { todoTextDraft = TextFieldValue() },
+                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                    ) { Text(text = "Clear") }
+                    IconButton(onClick = {
+                        startActivity(Intent(this@MainActivityScreen, SettingsActivity::class.java))
+                    }) {
+                        Icon(Icons.Rounded.Settings, "", tint = MaterialTheme.colors.primary)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    val onClick = { account: Account ->
                         scope.launch {
                             val body = todoTextDraft.text.trim()
                             sendInProgress = true
                             todoTextDraft = TextFieldValue()
                             withContext(Dispatchers.IO) {
-                                EmailManager.sendEmailToMyself("|", body, isWork)
+                                EmailManager.sendEmailToMyself(account, "|", body)
                             }
                             sendInProgress = false
                             showToast("Successful!")
@@ -143,20 +169,14 @@ fun MainActivity.MainActivityScreen(viewModel: MainActivityViewModel) {
                         }
                         Unit
                     }
-                    TextButton(
-                        onClick = { todoTextDraft = TextFieldValue() },
-                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                    ) { Text(text = "Clear") }
-                    Spacer(modifier = Modifier.weight(1f))
-                    TextButton(
-                        onClick = { onClick(true) },
-                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                    ) { Text("Work") }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(
-                        onClick = { onClick(false) },
-                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                    ) { Text("Send") }
+                    val accountsSeq by accounts.observeAsState()
+                    accountsSeq!!.forEach {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(
+                            onClick = { onClick(it) },
+                            enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                        ) { Text(it.label) }
+                    }
                 }
             }
         }

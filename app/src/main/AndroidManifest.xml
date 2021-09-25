@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="bobko.email.todo">
 
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -36,6 +37,11 @@
                 <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:excludeFromRecents="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <service
             android:name=".Tile"

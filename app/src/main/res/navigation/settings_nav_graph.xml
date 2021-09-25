@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/settings_nav_graph"
+    app:startDestination="@id/mainSettingsFragment">
+
+    <fragment
+        android:id="@+id/mainSettingsFragment"
+        android:name="bobko.email.todo.settings.MainSettingsFragment"
+        android:label="MainSettingsFragment">
+        <action
+            android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsWizardFragment"
+            app:destination="@id/addAccountSettingsWizardFragment" />
+        <action
+            android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsFragmentDialog"
+            app:destination="@id/editAccountSettingsFragmentDialog" />
+    </fragment>
+
+    <dialog
+        android:id="@+id/editAccountSettingsFragmentDialog"
+        android:name="bobko.email.todo.settings.EditAccountSettingsFragment"
+        android:label="EditAccountSettingsFragment" />
+    <dialog
+        android:id="@+id/addAccountSettingsWizardFragment"
+        android:name="bobko.email.todo.settings.AddAccountSettingsWizardFragment"
+        android:label="AddAccountSettingsWizardFragment" >
+        <action
+            android:id="@+id/action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog"
+            app:destination="@id/editAccountSettingsFragmentDialog"
+            app:popUpTo="@id/mainSettingsFragment" />
+    </dialog>
+</navigation>
