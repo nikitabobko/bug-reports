@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
@@ -46,19 +47,8 @@ fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
 }
 
 @Composable
-fun <T> MutableLiveData<T>.observeAsMutableState(): MutableState<T> {
-    val state by this.observeAsState()
-    return object : MutableState<T> {
-        override var value: T
-            get() = state as T
-            set(value) {
-                this@observeAsMutableState.value = value
-            }
-
-        override fun component1(): T = value
-        override fun component2(): (T) -> Unit = { value = it }
-    }
-}
+fun <T> MutableLiveData<T>.observeAsMutableState(): MutableState<T?> =
+    this.observeAsState() as MutableState<T?>
 
 fun Context.composeView(body: @Composable () -> Unit): View =
     ComposeView(this).apply { setContent(body) }

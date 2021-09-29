@@ -1,13 +1,12 @@
 package bobko.email.todo
 
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import bobko.email.todo.util.NotNullableMutableLiveData
 
 class MainActivityViewModel : ViewModel() {
-    val todoTextDraft = MutableLiveData(TextFieldValue())
-    var todoTextDraftIsChangedAtLeastOnce = MutableLiveData(false)
+    val todoTextDraft = NotNullableMutableLiveData(TextFieldValue())
+    var todoTextDraftIsChangedAtLeastOnce = NotNullableMutableLiveData(false)
     var isStartedFromTile: Boolean = false
 
     private var isPrefilledWithSharedText: Boolean = false
@@ -15,7 +14,7 @@ class MainActivityViewModel : ViewModel() {
 
     fun prefillSharedText(sharedText: String, callerAppLabel: String?) {
         require(sharedText.isNotBlank())
-        if (todoTextDraft.value!!.text.isEmpty() && !isPrefilledWithSharedText /* Allow to prefill TextField only once */) {
+        if (todoTextDraft.value.text.isEmpty() && !isPrefilledWithSharedText /* Allow to prefill TextField only once */) {
             isPrefilledWithSharedText = true
             todoTextDraft.value = composeSharedText(sharedText, callerAppLabel)
         }

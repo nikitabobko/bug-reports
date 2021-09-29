@@ -1,8 +1,6 @@
 package bobko.email.todo
 
 import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import bobko.email.todo.model.Account
 import bobko.email.todo.util.*
@@ -10,10 +8,10 @@ import bobko.email.todo.util.*
 object PrefManager {
     private val numberOfAccounts by PrefKey.delegate(defaultValue = 0)
 
-    private var accounts: MutableLiveData<SizedSequence<Account>>? = null
+    private var accounts: NotNullableMutableLiveData<SizedSequence<Account>>? = null
 
-    fun readAccounts(application: Application): LiveData<SizedSequence<Account>> {
-        return accounts ?: MutableLiveData(
+    fun readAccounts(application: Application): NotNullableLiveData<SizedSequence<Account>> {
+        return accounts ?: NotNullableMutableLiveData(
             PreferenceManager.getDefaultSharedPreferences(application).read {
                 val size = numberOfAccounts.value
                 SizedSequence(

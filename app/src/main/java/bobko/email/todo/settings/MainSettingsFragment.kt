@@ -11,23 +11,23 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
 import androidx.navigation.fragment.findNavController
 import bobko.email.todo.PrefManager
 import bobko.email.todo.R
 import bobko.email.todo.model.Account
 import bobko.email.todo.ui.theme.EmailTodoTheme
+import bobko.email.todo.util.NotNullableLiveData
 import bobko.email.todo.util.SizedSequence
 import bobko.email.todo.util.composeView
+import bobko.email.todo.util.observeAsNotNullableState
 
 class MainSettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (PrefManager.readAccounts(requireActivity().application).value!!.count() == 0) {
+        if (PrefManager.readAccounts(requireActivity().application).value.count() == 0) {
             findNavController().navigate(R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment)
         }
     }
@@ -43,7 +43,7 @@ class MainSettingsFragment : Fragment() {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainSettingsFragment.MainSettingsActivityScreen(accounts: LiveData<SizedSequence<Account>>) {
+fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveData<SizedSequence<Account>>) {
     EmailTodoTheme {
         var accountToDeleteConfirmation by remember { mutableStateOf<Account?>(null) }
         Surface {
@@ -59,8 +59,8 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: LiveData<SizedSequ
                 )
 
                 DividerWithText("Accounts")
-                val accountsSeq by accounts.observeAsState()
-                accountsSeq!!.forEach { account ->
+                val accountsSeq by accounts.observeAsNotNullableState()
+                accountsSeq.forEach { account ->
                     ListItem(
                         icon = {
                             knownSmtpCredentials
@@ -116,7 +116,7 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: LiveData<SizedSequ
                             val application = requireActivity().application
                             PrefManager.writeAccounts(
                                 application,
-                                accounts.value!!.toList().filter { it != account }
+                                accounts.value.toList().filter { it != account }
                             )
                             accountToDeleteConfirmation = null
                         }) { Text("Yes") }

@@ -18,7 +18,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import androidx.lifecycle.LiveData
 import bobko.email.todo.model.Account
 import bobko.email.todo.settings.SettingsActivity
 import bobko.email.todo.ui.theme.EmailTodoTheme
@@ -57,7 +55,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val accounts = PrefManager.readAccounts(application)
-        if (accounts.value!!.count() == 0) {
+        if (accounts.value.count() == 0) {
             finish()
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -111,11 +109,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainActivity.MainActivityScreen(
     viewModel: MainActivityViewModel,
-    accounts: LiveData<SizedSequence<Account>>
+    accounts: NotNullableLiveData<SizedSequence<Account>>
 ) {
     EmailTodoTheme {
         var sendInProgress by remember { mutableStateOf(false) }
-        var todoTextDraft by viewModel.todoTextDraft.observeAsMutableState()
+        var todoTextDraft by viewModel.todoTextDraft.observeAsNotNullableMutableState()
         val scope = rememberCoroutineScope()
         val focusRequester = remember { FocusRequester() }
         Surface(modifier = Modifier.clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))) {
@@ -169,8 +167,8 @@ fun MainActivity.MainActivityScreen(
                         }
                         Unit
                     }
-                    val accountsSeq by accounts.observeAsState()
-                    accountsSeq!!.forEach {
+                    val accountsSeq by accounts.observeAsNotNullableState()
+                    accountsSeq.forEach {
                         Spacer(modifier = Modifier.width(8.dp))
                         TextButton(
                             onClick = { onClick(it) },
