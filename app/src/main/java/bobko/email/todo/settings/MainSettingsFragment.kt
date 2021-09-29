@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -48,6 +50,7 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveDat
     EmailTodoTheme {
         var accountToDeleteConfirmation by remember { mutableStateOf<Account?>(null) }
         Surface {
+            val scrollState = rememberScrollState()
             Column {
                 TopAppBar(
                     modifier = Modifier.fillMaxWidth(),
@@ -59,47 +62,49 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveDat
                     }
                 )
 
-                DividerWithText("Accounts")
-                val accountsSeq by accounts.observeAsNotNullableState()
-                accountsSeq.forEach { account ->
+                Column(modifier = Modifier.verticalScroll(scrollState)) {
+                    DividerWithText("Accounts")
+                    val accountsSeq by accounts.observeAsNotNullableState()
+                    accountsSeq.forEach { account ->
+                        ListItem(
+                            icon = {
+                                knownSmtpCredentials
+                                    .singleOrNull {
+                                        it.smtpCredential.smtpServer == account.credential.smtpServer
+                                    }
+                                    ?.Icon()
+                            },
+                            modifier = Modifier.clickable {
+                                findNavController().navigate(
+                                    R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
+                                )
+                            },
+                            trailing = {
+                                IconButton(
+                                    content = { Icon(Icons.Rounded.Delete, "") },
+                                    onClick = { accountToDeleteConfirmation = account }
+                                )
+                            },
+                            text = { Text(text = "${account.label} <${account.sendTo}>") }
+                        )
+                    }
                     ListItem(
-                        icon = {
-                            knownSmtpCredentials
-                                .singleOrNull {
-                                    it.smtpCredential.smtpServer == account.credential.smtpServer
-                                }
-                                ?.Icon()
-                        },
+                        icon = { Icon(Icons.Rounded.Add, "", modifier = Modifier.size(emailIconSize)) },
                         modifier = Modifier.clickable {
                             findNavController().navigate(
                                 R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
                             )
                         },
-                        trailing = {
-                            IconButton(
-                                content = { Icon(Icons.Rounded.Delete, "") },
-                                onClick = { accountToDeleteConfirmation = account }
-                            )
-                        },
-                        text = { Text(text = "${account.label} <${account.sendTo}>") }
+                        text = { Text(text = "Add account") }
                     )
+
+                    DividerWithText("Prefill with clipboard when ...")
+                    SwitchItem("... opened from Launcher")
+                    SwitchItem("... opened from Tile")
+
+                    DividerWithText("Other")
+                    SwitchItem("Append app name which shared prefilled text")
                 }
-                ListItem(
-                    icon = { Icon(Icons.Rounded.Add, "", modifier = Modifier.size(emailIconSize)) },
-                    modifier = Modifier.clickable {
-                        findNavController().navigate(
-                            R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
-                        )
-                    },
-                    text = { Text(text = "Add account") }
-                )
-
-                DividerWithText("Prefill with clipboard when ...")
-                SwitchItem("... opened from Launcher")
-                SwitchItem("... opened from Tile")
-
-                DividerWithText("Other")
-                SwitchItem("Append app name which shared prefilled text")
             }
         }
         accountToDeleteConfirmation?.let { account ->
