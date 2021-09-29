@@ -116,64 +116,80 @@ fun MainActivity.MainActivityScreen(
         var todoTextDraft by viewModel.todoTextDraft.observeAsNotNullableMutableState()
         val scope = rememberCoroutineScope()
         val focusRequester = remember { FocusRequester() }
-        Surface(modifier = Modifier.clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))) {
-            Column(modifier = Modifier.padding(8.dp)) {
-                TextField(
-                    value = todoTextDraft,
-                    onValueChange = {
-                        todoTextDraft = it
-                        viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
-                    ),
-                    enabled = !sendInProgress,
-                    label = { Text(if (sendInProgress) "Sending..." else "Your todo is...") }
+        Column {
+            // Transparent Surface for keeping space for Android context menu
+            Surface(modifier = Modifier.height(50.dp), color = Color.Transparent) {}
+            Surface(
+                modifier = Modifier.clip(
+                    RoundedCornerShape(
+                        topStart = 10.dp,
+                        topEnd = 10.dp
+                    )
                 )
-                DisposableEffect(sendInProgress) {
-                    focusRequester.requestFocus()
-                    onDispose { }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(
-                        onClick = { todoTextDraft = TextFieldValue() },
-                        enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                    ) { Text(text = "Clear") }
-                    IconButton(onClick = {
-                        startActivity(Intent(this@MainActivityScreen, SettingsActivity::class.java))
-                    }) {
-                        Icon(Icons.Rounded.Settings, "", tint = MaterialTheme.colors.primary)
+            ) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    TextField(
+                        value = todoTextDraft,
+                        onValueChange = {
+                            todoTextDraft = it
+                            viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        colors = TextFieldDefaults.textFieldColors(
+                            backgroundColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
+                        ),
+                        enabled = !sendInProgress,
+                        label = { Text(if (sendInProgress) "Sending..." else "Your todo is...") }
+                    )
+                    DisposableEffect(sendInProgress) {
+                        focusRequester.requestFocus()
+                        onDispose { }
                     }
-                    Spacer(modifier = Modifier.weight(1f))
-                    val onClick = { account: Account ->
-                        scope.launch {
-                            val body = todoTextDraft.text.trim()
-                            sendInProgress = true
-                            todoTextDraft = TextFieldValue()
-                            withContext(Dispatchers.IO) {
-                                EmailManager.sendEmailToMyself(account, "|", body)
-                            }
-                            sendInProgress = false
-                            showToast("Successful!")
-                            if (viewModel.finishActivityAfterSend) {
-                                this@MainActivityScreen.finish()
-                            }
-                        }
-                        Unit
-                    }
-                    val accountsSeq by accounts.observeAsNotNullableState()
-                    accountsSeq.forEach {
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         TextButton(
-                            onClick = { onClick(it) },
+                            onClick = { todoTextDraft = TextFieldValue() },
                             enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                        ) { Text(it.label) }
+                        ) { Text(text = "Clear") }
+                        IconButton(onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivityScreen,
+                                    SettingsActivity::class.java
+                                )
+                            )
+                        }) {
+                            Icon(Icons.Rounded.Settings, "", tint = MaterialTheme.colors.primary)
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        val onClick = { account: Account ->
+                            scope.launch {
+                                val body = todoTextDraft.text.trim()
+                                sendInProgress = true
+                                todoTextDraft = TextFieldValue()
+                                withContext(Dispatchers.IO) {
+                                    EmailManager.sendEmailToMyself(account, "|", body)
+                                }
+                                sendInProgress = false
+                                showToast("Successful!")
+                                if (viewModel.finishActivityAfterSend) {
+                                    this@MainActivityScreen.finish()
+                                }
+                            }
+                            Unit
+                        }
+                        val accountsSeq by accounts.observeAsNotNullableState()
+                        accountsSeq.forEach {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TextButton(
+                                onClick = { onClick(it) },
+                                enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                            ) { Text(it.label) }
+                        }
                     }
                 }
             }
