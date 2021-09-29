@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -145,11 +146,7 @@ private fun SwitchItem(text: String) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun DividerWithText(text: String) {
-    Divider()
-    ListItem(
-        icon = { Spacer(modifier = Modifier.width(32.dp)) },
-        modifier = Modifier.height(32.dp)
-    ) {
-        Text(text.uppercase(), color = MaterialTheme.colors.primary)
+    ListItem(modifier = Modifier.height(32.dp)) {
+        Text(text, color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold)
     }
 }
