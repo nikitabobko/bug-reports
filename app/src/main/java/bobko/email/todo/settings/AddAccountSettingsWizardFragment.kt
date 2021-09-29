@@ -50,8 +50,7 @@ fun AddAccountSettingsWizardFragment.AddAccountSettingsWizardFragmentScreen() {
                         Icon(
                             Icons.Rounded.Email,
                             "Email (SMTP)",
-                            modifier = Modifier.size(emailIconSize),
-                            tint = Color.Unspecified
+                            modifier = Modifier.size(emailIconSize)
                         )
                     },
                     "Email (SMTP)",
