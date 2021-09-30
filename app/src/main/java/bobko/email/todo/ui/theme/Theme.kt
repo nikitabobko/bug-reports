@@ -13,9 +13,15 @@ fun EmailTodoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
     MaterialTheme(
         colors = run {
             if (darkTheme) {
-                darkColors(primary = Color(0xff1ca15f))
+                darkColors(
+                    primary = Color(0xff1ca15f),
+                    secondaryVariant = Color(0xff1ca15f) // Switch checked color
+                )
             } else {
-                lightColors(primary = Color(0xff1ca15f))
+                lightColors(
+                    primary = Color(0xff1ca15f),
+                    secondaryVariant = Color(0xff1ca15f) // Switch checked color
+                )
             }
         },
         content = {
