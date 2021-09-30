@@ -1,10 +1,7 @@
 package bobko.email.todo.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
@@ -22,11 +19,9 @@ fun EmailTodoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
             }
         },
         content = {
-            if (!darkTheme) {
-                val color = MaterialTheme.colors.primary
-                SideEffect {
-                    systemUiController.setSystemBarsColor(color = color)
-                }
+            val color = MaterialTheme.colors.primarySurface
+            SideEffect {
+                systemUiController.setSystemBarsColor(color = color)
             }
             content()
         }

@@ -48,7 +48,7 @@ class MainSettingsFragment : Fragment() {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveData<SizedSequence<Account>>) {
+fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveData<List<Account>>) {
     EmailTodoTheme {
         Surface {
             val scrollState = rememberScrollState()
@@ -99,8 +99,8 @@ private fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun MainSettingsFragment.Accounts(accountsLiveData: NotNullableLiveData<SizedSequence<Account>>) {
-    val accounts = accountsLiveData.observeAsNotNullableState().value.toList()
+private fun MainSettingsFragment.Accounts(accountsLiveData: NotNullableLiveData<List<Account>>) {
+    val accounts = accountsLiveData.observeAsNotNullableState().value
     var offsets by remember(accounts.size) { mutableStateOf(List(accounts.size) { 0 }) }
     var itemHeight by remember { mutableStateOf(0) }
     accounts.forEachIndexed { currentIdx, account ->

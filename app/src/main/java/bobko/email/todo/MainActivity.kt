@@ -12,20 +12,27 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.getSystemService
 import bobko.email.todo.model.Account
 import bobko.email.todo.settings.SettingsActivity
@@ -106,10 +113,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainActivity.MainActivityScreen(
     viewModel: MainActivityViewModel,
-    accounts: NotNullableLiveData<SizedSequence<Account>>
+    accountsLive: NotNullableLiveData<List<Account>>
 ) {
     EmailTodoTheme {
         var sendInProgress by remember { mutableStateOf(false) }
@@ -118,7 +126,17 @@ fun MainActivity.MainActivityScreen(
         val focusRequester = remember { FocusRequester() }
         Column {
             // Transparent Surface for keeping space for Android context menu
-            Surface(modifier = Modifier.height(50.dp), color = Color.Transparent) {}
+            Surface(
+                modifier = Modifier
+                    .height(50.dp)
+                    .fillMaxWidth()
+                    .clickable(
+                        remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { finish() }
+                    ),
+                color = Color.Transparent
+            ) {}
             Surface(
                 modifier = Modifier.clip(
                     RoundedCornerShape(
@@ -182,13 +200,47 @@ fun MainActivity.MainActivityScreen(
                             }
                             Unit
                         }
-                        accounts.observeAsNotNullableState().value.toList().reversed().forEach {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            TextButton(
-                                onClick = { onClick(it) },
-                                enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                            ) { Text(it.label) }
+                        val minButtonsToStartFolding = 4
+                        val numOfButtonsToFoldDownTo = 2
+                        val accounts by accountsLive.observeAsNotNullableState()
+                        val doFold = accounts.count() >= minButtonsToStartFolding
+                        if (doFold) {
+                            Box {
+                                var expanded by remember { mutableStateOf(false) }
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false },
+                                    properties = PopupProperties(focusable = false) // Don't hide keyboard
+                                ) {
+                                    accounts.drop(numOfButtonsToFoldDownTo)
+                                        .forEach {
+                                            DropdownMenuItem(onClick = { onClick(it) }) {
+                                                Text(it.label, color = MaterialTheme.colors.primary)
+                                            }
+                                        }
+                                }
+                                IconButton(
+                                    onClick = { expanded = true },
+                                    enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                                ) {
+                                    if (!sendInProgress && todoTextDraft.text.isNotBlank()) {
+                                        Icon(Icons.Rounded.MoreVert, "", tint = MaterialTheme.colors.primary)
+                                    } else {
+                                        Icon(Icons.Rounded.MoreVert, "")
+                                    }
+                                }
+                            }
                         }
+
+                        accounts.let { if (doFold) it.take(numOfButtonsToFoldDownTo) else it }
+                            .reversed()
+                            .forEach {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                TextButton(
+                                    onClick = { onClick(it) },
+                                    enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
+                                ) { Text(it.label) }
+                            }
                     }
                 }
             }
