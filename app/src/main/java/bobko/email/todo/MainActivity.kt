@@ -182,8 +182,7 @@ fun MainActivity.MainActivityScreen(
                             }
                             Unit
                         }
-                        val accountsSeq by accounts.observeAsNotNullableState()
-                        accountsSeq.forEach {
+                        accounts.observeAsNotNullableState().value.toList().reversed().forEach {
                             Spacer(modifier = Modifier.width(8.dp))
                             TextButton(
                                 onClick = { onClick(it) },

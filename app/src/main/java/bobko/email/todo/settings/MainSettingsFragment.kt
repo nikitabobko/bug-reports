@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,9 +14,11 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -22,10 +27,7 @@ import bobko.email.todo.PrefManager
 import bobko.email.todo.R
 import bobko.email.todo.model.Account
 import bobko.email.todo.ui.theme.EmailTodoTheme
-import bobko.email.todo.util.NotNullableLiveData
-import bobko.email.todo.util.SizedSequence
-import bobko.email.todo.util.composeView
-import bobko.email.todo.util.observeAsNotNullableState
+import bobko.email.todo.util.*
 
 class MainSettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +50,6 @@ class MainSettingsFragment : Fragment() {
 @Composable
 fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveData<SizedSequence<Account>>) {
     EmailTodoTheme {
-        var accountToDeleteConfirmation by remember { mutableStateOf<Account?>(null) }
         Surface {
             val scrollState = rememberScrollState()
             Column {
@@ -64,32 +65,15 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveDat
 
                 Column(modifier = Modifier.verticalScroll(scrollState)) {
                     DividerWithText("Accounts")
-                    val accountsSeq by accounts.observeAsNotNullableState()
-                    accountsSeq.forEach { account ->
-                        ListItem(
-                            icon = {
-                                knownSmtpCredentials
-                                    .singleOrNull {
-                                        it.smtpCredential.smtpServer == account.credential.smtpServer
-                                    }
-                                    ?.Icon()
-                            },
-                            modifier = Modifier.clickable {
-                                findNavController().navigate(
-                                    R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
-                                )
-                            },
-                            trailing = {
-                                IconButton(
-                                    content = { Icon(Icons.Rounded.Delete, "") },
-                                    onClick = { accountToDeleteConfirmation = account }
-                                )
-                            },
-                            text = { Text(text = "${account.label} <${account.sendTo}>") }
-                        )
-                    }
+                    Accounts(accounts)
                     ListItem(
-                        icon = { Icon(Icons.Rounded.Add, "", modifier = Modifier.size(emailIconSize)) },
+                        icon = {
+                            Icon(
+                                Icons.Rounded.Add,
+                                "",
+                                modifier = Modifier.size(emailIconSize)
+                            )
+                        },
                         modifier = Modifier.clickable {
                             findNavController().navigate(
                                 R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
@@ -107,29 +91,86 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveDat
                 }
             }
         }
-        accountToDeleteConfirmation?.let { account ->
-            AlertDialog(
-                onDismissRequest = { accountToDeleteConfirmation = null },
-                text = { Text("Are you sure you want to delete account \"${account.label} <${account.sendTo}>\"?") },
-                buttons = {
-                    Row(modifier = Modifier.padding(bottom = 8.dp, end = 8.dp)) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        TextButton(onClick = {
-                            accountToDeleteConfirmation = null
-                        }) { Text("Cancel") }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(onClick = {
-                            val application = requireActivity().application
-                            PrefManager.writeAccounts(
-                                application,
-                                accounts.value.toList().filter { it != account }
-                            )
-                            accountToDeleteConfirmation = null
-                        }) { Text("Yes") }
+    }
+}
+
+private fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
+    (pixelOffset / (itemHeight / 2)).let { it / 2 + it % 2 }
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun MainSettingsFragment.Accounts(accountsLiveData: NotNullableLiveData<SizedSequence<Account>>) {
+    val accounts = accountsLiveData.observeAsNotNullableState().value.toList()
+    var offsets by remember(accounts.size) { mutableStateOf(List(accounts.size) { 0 }) }
+    var itemHeight by remember { mutableStateOf(0) }
+    accounts.forEachIndexed { currentIdx, account ->
+        val offsetLowerBound = -currentIdx * itemHeight
+        val offsetUpperBound = (accounts.lastIndex - currentIdx) * itemHeight
+        ListItem(
+            icon = {
+                knownSmtpCredentials
+                    .singleOrNull {
+                        it.smtpCredential.smtpServer == account.credential.smtpServer
                     }
+                    ?.Icon()
+            },
+            modifier = Modifier
+                .offset(y = with(LocalDensity.current) { offsets[currentIdx].toDp() })
+                .clickable {
+                    findNavController().navigate(
+                        R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
+                    )
                 }
-            )
-        }
+                .onSizeChanged { if (currentIdx == 0 && itemHeight == 0) itemHeight = it.height },
+            trailing = {
+                Icon(
+                    painterResource(R.drawable.drag_handle_24),
+                    "",
+                    // TODO Change to swipeable? https://developer.android.com/jetpack/compose/gestures#swiping
+                    modifier = Modifier.draggable(
+                        rememberDraggableState(onDelta = { delta ->
+                            val newOffset = (offsets[currentIdx] + delta.toInt())
+                                .coerceIn(offsetLowerBound..offsetUpperBound)
+                            val newIdx = currentIdx + calculateIndexOffset(newOffset, itemHeight)
+                            offsets = List(offsets.size) {
+                                when (it) {
+                                    currentIdx -> newOffset
+
+                                    in minOf(newIdx, currentIdx)..maxOf(newIdx, currentIdx) -> {
+                                        sign(currentIdx - it) * itemHeight
+                                    }
+
+                                    else -> 0
+                                }
+                            }
+                        }),
+                        orientation = Orientation.Vertical,
+                        onDragStopped = {
+                            val newIdx = currentIdx + calculateIndexOffset(
+                                offsets[currentIdx],
+                                itemHeight
+                            )
+
+                            val newAccounts = when {
+                                currentIdx < newIdx -> accounts.subList(0, currentIdx) +
+                                        accounts.subList(currentIdx + 1, newIdx + 1) +
+                                        listOf(account) +
+                                        accounts.subList(newIdx + 1, accounts.size)
+                                newIdx < currentIdx -> accounts.subList(0, newIdx) +
+                                        listOf(account) +
+                                        accounts.subList(newIdx, currentIdx) +
+                                        accounts.subList(currentIdx + 1, accounts.size)
+                                else -> accounts
+                            }
+
+                            offsets = List(accounts.size) { 0 }
+                            PrefManager.writeAccounts(requireActivity().application, newAccounts)
+                        }
+                    )
+                )
+            },
+            text = { Text(text = "${account.label} <${account.sendTo}>") }
+        )
     }
 }
 

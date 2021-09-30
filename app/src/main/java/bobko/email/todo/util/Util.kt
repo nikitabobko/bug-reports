@@ -52,3 +52,11 @@ fun <T> MutableLiveData<T>.observeAsMutableState(): MutableState<T?> =
 
 fun Context.composeView(body: @Composable () -> Unit): View =
     ComposeView(this).apply { setContent(body) }
+
+fun sign(x: Int): Int {
+    return when {
+        x < 0 -> -1
+        x > 0 -> 1
+        else -> 0
+    }
+}

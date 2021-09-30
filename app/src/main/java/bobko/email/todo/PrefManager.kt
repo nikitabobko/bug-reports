@@ -10,7 +10,7 @@ object PrefManager {
 
     private var accounts: NotNullableMutableLiveData<SizedSequence<Account>>? = null
 
-    fun readAccounts(application: Application): NotNullableLiveData<SizedSequence<Account>> {
+    fun readAccounts(application: Application /*TODO do I really need Application here?*/): NotNullableLiveData<SizedSequence<Account>> {
         return accounts ?: NotNullableMutableLiveData(
             PreferenceManager.getDefaultSharedPreferences(application).read {
                 val size = numberOfAccounts.value
