@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -e # Exit if one of commands exit with non-zero exit code
+set -u # Treat unset variables and parameters other than the special parameters ‘@’ or ‘*’ as an error
+
+echo_red() {
+    echo -e "\e[1;31m$@\e[0m"
+}
+
+echo_green() {
+    echo -e "\033[0;32m$@\e[0m"
+}
+
+SEND_FROM="your_email@example.com"
+PASSWORD="your_password"
+
+file=$(mktemp)
+echo "From: $SEND_FROM
+To: $1
+Subject: " > $file
+
+line="$(cat $file | wc -l)"
+
+if [ $# -gt 1 ]; then
+    test -f $2
+    echo >> $file
+    cat $2 >> $file
+    echo >> $file
+fi
+
+micro -parsecursor true "${file}:${line}:10"
+
+if ! [ -s "$file" ]; then
+    # FILE doesn't exists or has a zero size
+    echo_red 'Aborted!'
+    exit 1
+fi
+
+curl --url 'smtp://smtp.gmail.com:587' \
+--mail-from $SEND_FROM \
+--mail-rcpt $1 \
+--ssl-reqd \
+--upload-file $file \
+--user "${SEND_FROM}:${PASSWORD}"
+
+echo_green 'Sent successfully!'

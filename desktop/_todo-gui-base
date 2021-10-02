@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e # Exit if one of commands exit with non-zero exit code
+set -u # Treat unset variables and parameters other than the special parameters ‘@’ or ‘*’ as an error
+
+todo_file=$(mktemp)
+xclip --selection primary -o > $todo_file
+terminator --geometry 900x500 -e "set -x; $1 $todo_file; zsh"
