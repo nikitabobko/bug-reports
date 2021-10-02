@@ -2,5 +2,6 @@
 <resources>
     <style name="Theme.MainActivity" parent="Theme.AppCompat.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowSwipeToDismiss">true</item>
     </style>
 </resources>
