@@ -1,5 +1,6 @@
 package bobko.email.todo.settings
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -16,10 +17,10 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -84,7 +85,15 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveDat
 
                     DividerWithText("Prefill with clipboard when ...")
                     SwitchItem("... opened from Launcher")
-                    SwitchItem("... opened from Tile")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        SwitchItem("... opened from Tile")
+                    } else {
+                        SwitchItem(
+                            "... opened from Tile",
+                            description = "Tiles are available only since Android N",
+                            enabled = false
+                        )
+                    }
 
                     DividerWithText("Other")
                     SwitchItem("Append app name which shared prefilled text")
@@ -176,16 +185,29 @@ private fun MainSettingsFragment.Accounts(accountsLiveData: NotNullableLiveData<
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun SwitchItem(text: String) {
-    var checked by remember { mutableStateOf(true) }
+private fun SwitchItem(text: String, description: String? = null, enabled: Boolean = true) {
+    var checked by remember { mutableStateOf(true && enabled) }
     ListItem(
         icon = { Spacer(modifier = Modifier.width(32.dp)) },
         trailing = {
-            Switch(checked = checked, onCheckedChange = null)
+            Switch(checked = checked, onCheckedChange = null, enabled = enabled)
         },
-        modifier = Modifier.clickable { checked = !checked }
+        modifier = Modifier.clickable(enabled = enabled) { checked = !checked }
     ) {
-        Text(text)
+        if (description != null) {
+            Column {
+                Text(text)
+                val disabledContentColor: Color = MaterialTheme.colors.onSurface
+                    .copy(alpha = ContentAlpha.disabled)
+                Text(
+                    description,
+                    color = disabledContentColor,
+                    style = MaterialTheme.typography.caption
+                )
+            }
+        } else {
+            Text(text)
+        }
     }
 }
 
@@ -193,6 +215,6 @@ private fun SwitchItem(text: String) {
 @Composable
 private fun DividerWithText(text: String) {
     ListItem(modifier = Modifier.height(32.dp)) {
-        Text(text, color = MaterialTheme.colors.primary, fontWeight = FontWeight.Bold)
+        Text(text, color = MaterialTheme.colors.primary, style = MaterialTheme.typography.subtitle2)
     }
 }
