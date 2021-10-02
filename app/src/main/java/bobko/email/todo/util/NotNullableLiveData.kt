@@ -15,7 +15,7 @@ interface NotNullableLiveData<T : Any> {
         get() = getValue()
 }
 
-class NotNullableMutableLiveData<T : Any>(value: T) : MutableLiveData<T>(value),
+open class NotNullableMutableLiveData<T : Any>(value: T) : MutableLiveData<T>(value),
     NotNullableLiveData<T> {
     override fun getValue(): T =
         super.getValue() ?: error("It's not possible. It must be initialized")

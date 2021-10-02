@@ -9,8 +9,8 @@ data class Account(val label: String, val sendTo: String, val credential: SmtpCr
         private val accountLabel: IndexedPrefKey<String> by IndexedPrefKey.delegate()
         private val accountSendTo: IndexedPrefKey<String> by IndexedPrefKey.delegate()
 
-        fun read(prefReaderContext: PrefReaderContext, index: Int): Account? =
-            with(prefReaderContext) {
+        fun read(readerContext: PrefReaderContext, index: Int): Account? =
+            with(readerContext) {
                 Account(
                     accountLabel[index] ?: return null,
                     accountSendTo[index] ?: return null,
@@ -18,8 +18,8 @@ data class Account(val label: String, val sendTo: String, val credential: SmtpCr
                 )
             }
 
-        fun write(prefWriterContext: PrefWriterContext, index: Int, account: Account?) {
-            with(prefWriterContext) {
+        fun write(writerContext: PrefWriterContext, index: Int, account: Account?) {
+            with(writerContext) {
                 accountLabel[index] = account?.label
                 accountSendTo[index] = account?.sendTo
                 SmtpCredential.write(this, index, account?.credential)

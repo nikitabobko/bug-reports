@@ -16,8 +16,8 @@ data class SmtpCredential(
         private val smtpUsername: IndexedPrefKey<String> by IndexedPrefKey.delegate()
         private val smtpPassword: IndexedPrefKey<String> by IndexedPrefKey.delegate()
 
-        fun read(readerContext: PrefReaderContext, index: Int): SmtpCredential? =
-            with(readerContext) {
+        fun read(readContext: PrefReaderContext, index: Int): SmtpCredential? =
+            with(readContext) {
                 SmtpCredential(
                     smtpServer[index] ?: return null,
                     smtpServerPort[index] ?: return null,
@@ -26,12 +26,8 @@ data class SmtpCredential(
                 )
             }
 
-        fun write(
-            prefWriterContext: PrefWriterContext,
-            index: Int,
-            value: SmtpCredential?
-        ) {
-            with(prefWriterContext) {
+        fun write(witerContext: PrefWriterContext, index: Int, value: SmtpCredential?) {
+            with(witerContext) {
                 smtpServer[index] = value?.smtpServer
                 smtpServerPort[index] = value?.smtpServerPort
                 smtpUsername[index] = value?.username
