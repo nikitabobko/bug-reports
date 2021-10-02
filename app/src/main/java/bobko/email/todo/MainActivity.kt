@@ -15,7 +15,9 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
@@ -27,9 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -51,17 +51,20 @@ class MainActivity : ComponentActivity() {
         // Some magic to show keyboard on Activity start
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
-        viewModel.isStartedFromTile = intent.getBooleanExtra(IS_STARTED_FROM_TILE_INTENT_KEY, false)
+        (intent.getSerializableExtra(STARTED_FROM) as? StartedFrom)?.let {
+            viewModel.startedFrom = it
+        }
 
         val sharedText = intent.takeIf { it?.action == Intent.ACTION_SEND }
             ?.getStringExtra(Intent.EXTRA_TEXT)
         if (sharedText?.isNotBlank() == true) {
+            viewModel.startedFrom = StartedFrom.Sharesheet
             val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
-                ?: getLastUsedAppLabel()
-            viewModel.prefillSharedText(sharedText, callerAppLabel)
+                ?: LastUsedAppProvider.getLastUsedAppLabel(this)
+            viewModel.prefillSharedText(this, sharedText, callerAppLabel)
         }
 
-        val accounts = PrefManager.readAccounts(application)
+        val accounts = PrefManager.readAccounts(this@MainActivity)
         if (accounts.value.count() == 0) {
             finish()
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -84,13 +87,24 @@ class MainActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         // Since Android Q it's necessary for the app to have focus to be able to access clipboard.
-        if (hasFocus && viewModel.isStartedFromTile) {
-            val clipboardManager = getSystemService<ClipboardManager>()
-            val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
-            if (clipboard?.isNotBlank() == true) {
-                viewModel.prefillSharedText(clipboard, getLastUsedAppLabel())
-            }
+        if (!hasFocus) {
+            return
         }
+        val shouldPrefillWithClipboard = when (val startedFrom = viewModel.startedFrom) {
+            StartedFrom.Launcher, StartedFrom.Tile -> readPref {
+                startedFrom.prefillPrefKey!!.value
+            }
+            StartedFrom.Sharesheet -> false
+        }
+        if (!shouldPrefillWithClipboard) {
+            return
+        }
+        val clipboardManager = getSystemService<ClipboardManager>()
+        val clipboard = clipboardManager!!.primaryClip?.getItemAt(0)?.text?.toString()
+        if (clipboard?.isNotBlank() != true) {
+            return
+        }
+        viewModel.prefillSharedText(this, clipboard, LastUsedAppProvider.getLastUsedAppLabel(this))
     }
 
     private fun isUsageAccessGranted(): Boolean {
@@ -103,11 +117,13 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val IS_STARTED_FROM_TILE_INTENT_KEY = "IS_STARTED_FROM_TILE_INTENT_KEY"
+        private const val STARTED_FROM = "STARTED_FROM"
 
         fun getIntent(context: Context, isStartedFromTile: Boolean): Intent {
             return Intent(context, MainActivity::class.java).apply {
-                putExtra(IS_STARTED_FROM_TILE_INTENT_KEY, isStartedFromTile)
+                if (isStartedFromTile) {
+                    putExtra(STARTED_FROM, StartedFrom.Tile)
+                }
             }
         }
     }
@@ -145,7 +161,11 @@ fun MainActivity.MainActivityScreen(
                     )
                 )
             ) {
-                Column(modifier = Modifier.padding(8.dp)) {
+                Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
                     TextField(
                         value = todoTextDraft,
                         onValueChange = {
@@ -194,7 +214,9 @@ fun MainActivity.MainActivityScreen(
                                 }
                                 sendInProgress = false
                                 showToast("Successful!")
-                                if (viewModel.finishActivityAfterSend) {
+                                val shouldCloseAfterSend =
+                                    readPref { viewModel.startedFrom.closeAfterSendPrefKey.value }
+                                if (shouldCloseAfterSend) {
                                     this@MainActivityScreen.finish()
                                 }
                             }
@@ -224,7 +246,11 @@ fun MainActivity.MainActivityScreen(
                                     enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
                                 ) {
                                     if (!sendInProgress && todoTextDraft.text.isNotBlank()) {
-                                        Icon(Icons.Rounded.MoreVert, "", tint = MaterialTheme.colors.primary)
+                                        Icon(
+                                            Icons.Rounded.MoreVert,
+                                            "",
+                                            tint = MaterialTheme.colors.primary
+                                        )
                                     } else {
                                         Icon(Icons.Rounded.MoreVert, "")
                                     }

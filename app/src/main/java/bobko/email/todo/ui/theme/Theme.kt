@@ -15,12 +15,14 @@ fun EmailTodoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
             if (darkTheme) {
                 darkColors(
                     primary = Color(0xff1ca15f),
-                    secondaryVariant = Color(0xff1ca15f) // Switch checked color
+                    secondaryVariant = Color(0xff1ca15f), // Switch checked color
+                    secondary = Color(0xff1ca15f) // Checkbox color
                 )
             } else {
                 lightColors(
                     primary = Color(0xff1ca15f),
-                    secondaryVariant = Color(0xff1ca15f) // Switch checked color
+                    secondaryVariant = Color(0xff1ca15f), // Switch checked color
+                    secondary = Color(0xff1ca15f) // Checkbox color
                 )
             }
         },

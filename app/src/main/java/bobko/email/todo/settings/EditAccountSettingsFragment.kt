@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,7 +19,6 @@ import bobko.email.todo.model.SmtpCredential
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import bobko.email.todo.util.composeView
 import bobko.email.todo.util.observeAsMutableState
-import bobko.email.todo.util.orElse
 
 class EditAccountSettingsFragment : DialogFragment() {
     fun parentActivity() = requireActivity() as SettingsActivity
@@ -88,10 +90,9 @@ fun EditAccountSettingsFragment.EditAccountSettingsFragmentScreen() {
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = {
-                        val application = requireActivity().application
                         PrefManager.writeAccounts(
-                            application,
-                            PrefManager.readAccounts(application).value!!.toList() + listOf(
+                            requireContext(),
+                            PrefManager.readAccounts(requireContext()).value + listOf(
                                 Account(
                                     label,
                                     sendTo,
