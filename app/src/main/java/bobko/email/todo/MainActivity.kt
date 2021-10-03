@@ -12,6 +12,8 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -38,13 +40,12 @@ import bobko.email.todo.model.Account
 import bobko.email.todo.settings.SettingsActivity
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import bobko.email.todo.util.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
-    private val viewModel by viewModels<MainActivityViewModel>()
+    val viewModel by viewModels<MainActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +72,7 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         setContent {
-            MainActivityScreen(viewModel, accounts)
+            MainActivityScreen(accounts)
         }
         window.setGravity(Gravity.BOTTOM)
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -132,15 +133,8 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MainActivity.MainActivityScreen(
-    viewModel: MainActivityViewModel,
-    accountsLive: NotNullableLiveData<List<Account>>
-) {
+fun MainActivity.MainActivityScreen(accountsLive: NotNullableLiveData<List<Account>>) {
     EmailTodoTheme {
-        val sendInProgress = remember { mutableStateOf(false) }
-        var todoTextDraft = viewModel.todoTextDraft.observeAsNotNullableMutableState()
-        val scope = rememberCoroutineScope()
-        val focusRequester = remember { FocusRequester() }
         Column {
             // Transparent Surface for keeping space for Android context menu
             Surface(
@@ -167,8 +161,13 @@ fun MainActivity.MainActivityScreen(
                         .padding(8.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
+                    val sendInProgress = remember { mutableStateOf(false) }
+                    val todoTextDraft = viewModel.todoTextDraft.observeAsNotNullableMutableState()
+                    val focusRequester = remember { FocusRequester() }
+                    val isError = remember { mutableStateOf(false) }
                     TextField(
                         value = todoTextDraft.value,
+                        isError = isError.value,
                         onValueChange = {
                             todoTextDraft.value = it
                             viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
@@ -180,16 +179,25 @@ fun MainActivity.MainActivityScreen(
                             backgroundColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
+                            disabledIndicatorColor = Color.Transparent,
+                            errorIndicatorColor = Color.Transparent
                         ),
                         enabled = !sendInProgress.value,
-                        label = { Text(if (sendInProgress.value) "Sending..." else "Your todo is...") }
+                        label = {
+                            Text(
+                                when {
+                                    isError.value -> "Error" // TODO better message
+                                    sendInProgress.value -> "Sending..."
+                                    else -> "Your todo is..."
+                                }
+                            )
+                        }
                     )
-                    DisposableEffect(sendInProgress) {
+                    Buttons(todoTextDraft, isError, sendInProgress, accountsLive)
+                    DisposableEffect(sendInProgress.value, todoTextDraft.value) {
                         focusRequester.requestFocus()
                         onDispose { }
                     }
-                    Buttons(todoTextDraft, sendInProgress, scope, viewModel, accountsLive)
                 }
             }
         }
@@ -199,37 +207,51 @@ fun MainActivity.MainActivityScreen(
 @Composable
 private fun MainActivity.Buttons(
     todoTextDraft: MutableState<TextFieldValue>,
+    isError: MutableState<Boolean>,
     sendInProgress: MutableState<Boolean>,
-    scope: CoroutineScope,
-    viewModel: MainActivityViewModel,
     accountsLive: NotNullableLiveData<List<Account>>
 ) {
+    val canStartSending = !sendInProgress.value && todoTextDraft.value.text.isNotBlank()
+    val unspecifiedOrErrorColor =
+        if (isError.value && canStartSending) MaterialTheme.colors.error else Color.Unspecified
+    val greenOrErrorColor =
+        if (isError.value) MaterialTheme.colors.error else MaterialTheme.colors.primary
+    val scope = rememberCoroutineScope()
     Row(verticalAlignment = Alignment.CenterVertically) {
-        val mainButtonsEnabled = !sendInProgress.value && todoTextDraft.value.text.isNotBlank()
         TextButton(
-            onClick = { todoTextDraft.value = TextFieldValue() },
-            enabled = mainButtonsEnabled
-        ) { Text(text = "Clear") }
+            onClick = {
+                todoTextDraft.value = TextFieldValue()
+                isError.value = false
+            },
+            enabled = canStartSending
+        ) { Text(text = "Clear", color = unspecifiedOrErrorColor) }
         IconButton(onClick = {
             startActivity(Intent(this@Buttons, SettingsActivity::class.java))
-        }) { Icon(Icons.Rounded.Settings, "", tint = MaterialTheme.colors.primary) }
+        }) { Icon(Icons.Rounded.Settings, "", tint = greenOrErrorColor) }
 
         Spacer(modifier = Modifier.weight(1f))
 
         val onClick = { account: Account ->
             scope.launch {
-                val body = todoTextDraft.value.text.trim()
+                val prevText = todoTextDraft.value.text
                 sendInProgress.value = true
                 todoTextDraft.value = TextFieldValue()
-                withContext(Dispatchers.IO) {
-                    EmailManager.sendEmailToMyself(account, "|", body)
-                }
-                sendInProgress.value = false
-                showToast("Successful!")
-                val shouldCloseAfterSend =
-                    readPref { viewModel.startedFrom.closeAfterSendPrefKey.value }
-                if (shouldCloseAfterSend) {
-                    this@Buttons.finish()
+                try {
+                    withContext(Dispatchers.IO) {
+                        EmailManager.sendEmailToMyself(account, "|", prevText.trim())
+                    }
+                    isError.value = false
+                    showToast("Successful!")
+                    val shouldCloseAfterSend =
+                        readPref { viewModel.startedFrom.closeAfterSendPrefKey.value }
+                    if (shouldCloseAfterSend) {
+                        this@Buttons.finish()
+                    }
+                } catch (ex: Throwable) {
+                    todoTextDraft.value = TextFieldValue(prevText)
+                    isError.value = true
+                } finally {
+                    sendInProgress.value = false
                 }
             }
             Unit
@@ -249,13 +271,13 @@ private fun MainActivity.Buttons(
                     accounts.drop(numOfButtonsToFoldDownTo)
                         .forEach {
                             DropdownMenuItem(onClick = { onClick(it) }) {
-                                Text(it.label, color = MaterialTheme.colors.primary)
+                                Text(it.label, color = greenOrErrorColor)
                             }
                         }
                 }
-                IconButton(onClick = { expanded = true }, enabled = mainButtonsEnabled) {
-                    if (mainButtonsEnabled) {
-                        Icon(Icons.Rounded.MoreVert, "", tint = MaterialTheme.colors.primary)
+                IconButton(onClick = { expanded = true }, enabled = canStartSending) {
+                    if (canStartSending) {
+                        Icon(Icons.Rounded.MoreVert, "", tint = greenOrErrorColor)
                     } else {
                         Icon(Icons.Rounded.MoreVert, "")
                     }
@@ -267,8 +289,8 @@ private fun MainActivity.Buttons(
             .reversed()
             .forEach {
                 Spacer(modifier = Modifier.width(8.dp))
-                TextButton(onClick = { onClick(it) }, enabled = mainButtonsEnabled) {
-                    Text(it.label)
+                TextButton(onClick = { onClick(it) }, enabled = canStartSending) {
+                    Text(it.label, color = unspecifiedOrErrorColor)
                 }
             }
     }

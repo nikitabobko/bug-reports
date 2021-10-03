@@ -28,6 +28,16 @@ object LastUsedAppProvider {
     fun isFeatureEnabled(context: Context) = isUsageAccessGranted(context) &&
             context.readPref { PrefManager.appendAppNameThatSharedTheText.value }
 
+    fun askForPermissionsIfNotDeclinedPreviously(context: Context) {
+        if (!isUsageAccessGranted(context) &&
+            context.readPref {
+                !PrefManager.appendAppNameThatSharedTheText.value && !PrefManager.isUsageAccessPromptDeclined.value
+            }
+        ) {
+
+        }
+    }
+
     private fun isUsageAccessGranted(context: Context): Boolean {
         val applicationInfo = context.packageManager.getApplicationInfo(context.packageName, 0)
         val appOpsManager = context.getSystemService<AppOpsManager>()!!
