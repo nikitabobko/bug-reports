@@ -3,12 +3,14 @@ package bobko.email.todo
 import android.content.Context
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import bobko.email.todo.util.NotNullableMutableLiveData
+import bobko.email.todo.util.mutableInitializedLiveDataOf
 import bobko.email.todo.util.readPref
 
 class MainActivityViewModel : ViewModel() {
-    val todoTextDraft = NotNullableMutableLiveData(TextFieldValue())
-    var todoTextDraftIsChangedAtLeastOnce = NotNullableMutableLiveData(false)
+    val todoTextDraft =
+        mutableInitializedLiveDataOf(TextFieldValue())
+    var todoTextDraftIsChangedAtLeastOnce =
+        mutableInitializedLiveDataOf(false)
 
     private var _startedFrom: StartedFrom? = null
     var startedFrom: StartedFrom
@@ -40,9 +42,7 @@ class MainActivityViewModel : ViewModel() {
         val text = buildString {
             appendLine()
             appendLine()
-            if (callerAppLabel != null &&
-                context.readPref { PrefManager.appendAppNameThatSharedTheText.value }
-            ) {
+            if (callerAppLabel != null && LastUsedAppFeatureManager.isFeatureEnabled(context).value) {
                 appendLine("Shared from: $callerAppLabel")
             }
             append(sharedText)

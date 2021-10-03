@@ -9,10 +9,13 @@ open class PrefReaderContext(
     protected val pref: SharedPreferences
 ) {
     @get:MainThread
-    open val <T : Any> PrefKey<T>.value get() = this.getValue(pref)
+    open val <T : Any> PrefKey<T>.value
+        get() = this.getValue(pref)
+
     @MainThread
     operator fun <T> IndexedPrefKey<T>.get(index: Int) = this.getValue(pref, index)
-    val <T : Any> PrefKey<T>.liveData: NotNullableLiveData<T> get() = this.getLiveData(pref)
+    val <T : Any> PrefKey<T>.initializedLiveData: InitializedLiveData<T>
+        get() = this.getLiveData(pref)
 }
 
 class PrefWriterContext(
