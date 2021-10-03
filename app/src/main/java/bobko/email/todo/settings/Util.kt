@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import bobko.email.todo.StartedFrom
+import bobko.email.todo.model.StartedFrom
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import bobko.email.todo.util.*
 

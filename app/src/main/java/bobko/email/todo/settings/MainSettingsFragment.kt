@@ -21,10 +21,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import bobko.email.todo.PrefManager
 import bobko.email.todo.R
-import bobko.email.todo.StartedFrom
+import bobko.email.todo.model.StartedFrom
 import bobko.email.todo.model.Account
+import bobko.email.todo.model.pref.PrefManager
 import bobko.email.todo.util.*
 
 class MainSettingsFragment : Fragment() {

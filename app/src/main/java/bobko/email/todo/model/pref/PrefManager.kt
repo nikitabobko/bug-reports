@@ -1,4 +1,4 @@
-package bobko.email.todo
+package bobko.email.todo.model.pref
 
 import android.content.Context
 import bobko.email.todo.model.Account
