@@ -35,10 +35,6 @@ fun <T : Any> mutableLiveDataOf(value: T) =
 fun <T : Any> AbstractInitializedLiveData<T, LiveData<T>>.observeAsState(): State<T> =
     liveData.observeAsState(value)
 
-@Composable
-fun <T : Any> AbstractInitializedLiveData<T, MutableLiveData<T>>.observeAsMutableState(): MutableState<T> =
-    liveData.observeAsMutableState(value)
-
 fun <T : Any, O : Any, R : Any> AbstractInitializedLiveData<T, LiveData<T>>.then(
     other: AbstractInitializedLiveData<O, LiveData<O>>,
     merge: (T, O) -> R

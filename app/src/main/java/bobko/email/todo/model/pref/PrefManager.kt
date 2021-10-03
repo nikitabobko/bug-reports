@@ -21,7 +21,7 @@ object PrefManager {
         return accounts.get() ?: mutableLiveDataOf(
             context.readPref {
                 val size = numberOfAccounts.value
-                (0 until size).asSequence().map { Account.read(this@readPref, it)!! }.toList()
+                (0 until size).map { Account.read(this@readPref, it)!! }
             }
         ).also {
             accounts = WeakReference(it)

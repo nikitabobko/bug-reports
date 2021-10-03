@@ -9,6 +9,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
@@ -18,7 +19,6 @@ import bobko.email.todo.model.SmtpCredential
 import bobko.email.todo.model.pref.PrefManager
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import bobko.email.todo.util.composeView
-import bobko.email.todo.util.observeAsMutableState
 
 class EditAccountSettingsFragment : DialogFragment() {
     fun parentActivity() = requireActivity() as SettingsActivity
@@ -37,7 +37,7 @@ fun EditAccountSettingsFragment.EditAccountSettingsFragmentScreen() {
     EmailTodoTheme {
         Surface {
             Column(modifier = Modifier.padding(8.dp)) {
-                val account by parentActivity().viewModel.accountTemplate.observeAsMutableState()
+                val account by parentActivity().viewModel.accountTemplate.observeAsState()
                 var smtpServer by remember {
                     mutableStateOf(
                         account?.credential?.smtpServer ?: ""

@@ -8,10 +8,8 @@ import bobko.email.todo.model.pref.LastUsedAppFeatureManager
 import bobko.email.todo.util.mutableLiveDataOf
 
 class MainActivityViewModel : ViewModel() {
-    val todoTextDraft =
-        mutableLiveDataOf(TextFieldValue())
-    var todoTextDraftIsChangedAtLeastOnce =
-        mutableLiveDataOf(false)
+    val todoTextDraft = mutableLiveDataOf(TextFieldValue())
+    var todoTextDraftIsChangedAtLeastOnce = mutableLiveDataOf(false)
 
     private var _startedFrom: StartedFrom? = null
     var startedFrom: StartedFrom

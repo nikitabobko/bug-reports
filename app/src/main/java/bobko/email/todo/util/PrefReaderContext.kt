@@ -5,9 +5,7 @@ import android.content.SharedPreferences
 import androidx.annotation.MainThread
 import androidx.preference.PreferenceManager
 
-open class PrefReaderContext(
-    protected val pref: SharedPreferences
-) {
+open class PrefReaderContext(protected val pref: SharedPreferences) {
     @get:MainThread
     open val <T : Any> PrefKey<T>.value
         get() = this.getValue(pref)
