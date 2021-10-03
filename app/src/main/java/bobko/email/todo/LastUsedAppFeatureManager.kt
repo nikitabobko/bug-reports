@@ -4,11 +4,12 @@ import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import androidx.core.content.getSystemService
-import bobko.email.todo.util.getAppLabelByPackageName
-import bobko.email.todo.util.orElse
-import bobko.email.todo.util.readPref
+import bobko.email.todo.util.*
 
-object LastUsedAppProvider {
+object LastUsedAppFeatureManager {
+    private val isUsageAccessPromptShowedAtLeastOnce by PrefKey.delegate(defaultValue = false)
+    private val appendAppNameThatSharedTheText by PrefKey.delegate(defaultValue = true)
+
     fun getLastUsedAppLabel(context: Context): String? {
         val time = System.currentTimeMillis()
         val stats = context.getSystemService<UsageStatsManager>()!!
@@ -25,18 +26,27 @@ object LastUsedAppProvider {
         return context.getAppLabelByPackageName(packageName)
     }
 
-    fun isFeatureEnabled(context: Context) = isUsageAccessGranted(context) &&
-            context.readPref { PrefManager.appendAppNameThatSharedTheText.value }
-
-    fun askForPermissionsIfNotDeclinedPreviously(context: Context) {
-        if (!isUsageAccessGranted(context) &&
-            context.readPref {
-                !PrefManager.appendAppNameThatSharedTheText.value && !PrefManager.isUsageAccessPromptDeclined.value
-            }
-        ) {
-
+    fun isFeatureEnabled(context: Context) =
+        if (!isUsageAccessGranted(context)) {
+            liveDataWithInitialOf(false)
+        } else {
+            context.readPref { appendAppNameThatSharedTheText.initializedLiveData }
         }
-    }
+
+    fun shouldAskForPermissions(context: Context) =
+        if (isUsageAccessGranted(context)) {
+            liveDataWithInitialOf(false)
+        } else {
+            context.readPref {
+                appendAppNameThatSharedTheText.initializedLiveData
+                    .then(
+                        isUsageAccessPromptShowedAtLeastOnce.initializedLiveData,
+                        merge = { appendAppNameThatSharedTheText, isUsageAccessPromptShowedAtLeastOnce ->
+                            appendAppNameThatSharedTheText && !isUsageAccessPromptShowedAtLeastOnce
+                        }
+                    )
+            }
+        }
 
     private fun isUsageAccessGranted(context: Context): Boolean {
         val applicationInfo = context.packageManager.getApplicationInfo(context.packageName, 0)

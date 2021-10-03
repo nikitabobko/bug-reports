@@ -25,10 +25,7 @@ import bobko.email.todo.PrefManager
 import bobko.email.todo.R
 import bobko.email.todo.StartedFrom
 import bobko.email.todo.model.Account
-import bobko.email.todo.util.NotNullableLiveData
-import bobko.email.todo.util.composeView
-import bobko.email.todo.util.observeAsNotNullableState
-import bobko.email.todo.util.sign
+import bobko.email.todo.util.*
 
 class MainSettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +46,7 @@ class MainSettingsFragment : Fragment() {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveData<List<Account>>) {
+fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveData<List<Account>>) {
     SettingsScreen("Email TODO Settings", rootSettingsScreen = true) {
         TextDivider("Accounts")
         AccountsSection(accounts)
@@ -80,8 +77,8 @@ private fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun MainSettingsFragment.AccountsSection(accountsLiveData: NotNullableLiveData<List<Account>>) {
-    val accounts = accountsLiveData.observeAsNotNullableState().value
+private fun MainSettingsFragment.AccountsSection(accountsLiveData: InitializedLiveData<List<Account>>) {
+    val accounts by accountsLiveData.observeAsState()
     var offsets by remember(accounts.size) { mutableStateOf(List(accounts.size) { 0 }) }
     var itemHeight by remember { mutableStateOf(0) }
     accounts.forEachIndexed { currentIdx, account ->

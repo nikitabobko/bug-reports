@@ -1,19 +1,15 @@
 package bobko.email.todo
 
-import android.app.AppOpsManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
 import android.view.Gravity
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -62,13 +58,12 @@ class MainActivity : ComponentActivity() {
         if (sharedText?.isNotBlank() == true) {
             viewModel.startedFrom = StartedFrom.Sharesheet
             val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
-                ?: LastUsedAppProvider.getLastUsedAppLabel(this)
+                ?: LastUsedAppFeatureManager.getLastUsedAppLabel(this)
             viewModel.prefillSharedText(this, sharedText, callerAppLabel)
         }
 
         val accounts = PrefManager.readAccounts(this@MainActivity)
         if (accounts.value.count() == 0) {
-            finish()
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         setContent {
@@ -80,10 +75,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        // Look for usages of android.app.usage.UsageStatsManager in the app
-        if (!isUsageAccessGranted()) {
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-        }
+        LastUsedAppFeatureManager.shouldAskForPermissions(this)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -106,15 +98,10 @@ class MainActivity : ComponentActivity() {
         if (clipboard?.isNotBlank() != true) {
             return
         }
-        viewModel.prefillSharedText(this, clipboard, LastUsedAppProvider.getLastUsedAppLabel(this))
-    }
-
-    private fun isUsageAccessGranted(): Boolean {
-        val applicationInfo = packageManager.getApplicationInfo(packageName, 0)
-        val appOpsManager = getSystemService<AppOpsManager>()!!
-        return AppOpsManager.MODE_ALLOWED == appOpsManager.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            applicationInfo.uid, applicationInfo.packageName
+        viewModel.prefillSharedText(
+            this,
+            clipboard,
+            LastUsedAppFeatureManager.getLastUsedAppLabel(this)
         )
     }
 
@@ -133,7 +120,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MainActivity.MainActivityScreen(accountsLive: NotNullableLiveData<List<Account>>) {
+fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<Account>>) {
     EmailTodoTheme {
         Column {
             // Transparent Surface for keeping space for Android context menu
@@ -156,50 +143,55 @@ fun MainActivity.MainActivityScreen(accountsLive: NotNullableLiveData<List<Accou
                     )
                 )
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    val sendInProgress = remember { mutableStateOf(false) }
-                    val todoTextDraft = viewModel.todoTextDraft.observeAsNotNullableMutableState()
-                    val focusRequester = remember { FocusRequester() }
-                    val isError = remember { mutableStateOf(false) }
-                    TextField(
-                        value = todoTextDraft.value,
-                        isError = isError.value,
-                        onValueChange = {
-                            todoTextDraft.value = it
-                            viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester),
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            errorIndicatorColor = Color.Transparent
-                        ),
-                        enabled = !sendInProgress.value,
-                        label = {
-                            Text(
-                                when {
-                                    isError.value -> "Error" // TODO better message
-                                    sendInProgress.value -> "Sending..."
-                                    else -> "Your todo is..."
-                                }
-                            )
-                        }
-                    )
-                    Buttons(todoTextDraft, isError, sendInProgress, accountsLive)
-                    DisposableEffect(sendInProgress.value, todoTextDraft.value) {
-                        focusRequester.requestFocus()
-                        onDispose { }
-                    }
-                }
+                TextFieldAndButtons(accountsLive)
             }
+        }
+    }
+}
+
+@Composable
+private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<List<Account>>) {
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        val sendInProgress = remember { mutableStateOf(false) }
+        val todoTextDraft = viewModel.todoTextDraft.observeAsMutableState()
+        val focusRequester = remember { FocusRequester() }
+        val isError = remember { mutableStateOf(false) }
+        TextField(
+            value = todoTextDraft.value,
+            isError = isError.value,
+            onValueChange = {
+                todoTextDraft.value = it
+                viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent
+            ),
+            enabled = !sendInProgress.value,
+            label = {
+                Text(
+                    when {
+                        isError.value -> "Error" // TODO better message
+                        sendInProgress.value -> "Sending..."
+                        else -> "Your todo is..."
+                    }
+                )
+            }
+        )
+        Buttons(todoTextDraft, isError, sendInProgress, accountsLive)
+        DisposableEffect(sendInProgress.value, todoTextDraft.value) {
+            focusRequester.requestFocus()
+            onDispose { }
         }
     }
 }
@@ -209,7 +201,7 @@ private fun MainActivity.Buttons(
     todoTextDraft: MutableState<TextFieldValue>,
     isError: MutableState<Boolean>,
     sendInProgress: MutableState<Boolean>,
-    accountsLive: NotNullableLiveData<List<Account>>
+    accountsLive: InitializedLiveData<List<Account>>
 ) {
     val canStartSending = !sendInProgress.value && todoTextDraft.value.text.isNotBlank()
     val unspecifiedOrErrorColor =
@@ -258,7 +250,7 @@ private fun MainActivity.Buttons(
         }
         val minButtonsToStartFolding = 4
         val numOfButtonsToFoldDownTo = 2
-        val accounts by accountsLive.observeAsNotNullableState()
+        val accounts by accountsLive.observeAsState()
         val doFold = accounts.count() >= minButtonsToStartFolding
         if (doFold) {
             Box {

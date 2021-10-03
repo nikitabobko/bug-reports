@@ -7,8 +7,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 
 fun Context.getAppLabelByPackageName(packageName: String): String? {
@@ -29,7 +31,11 @@ fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
 
 @Composable
 fun <T> MutableLiveData<T>.observeAsMutableState(): MutableState<T?> =
-    this.observeAsState() as MutableState<T?>
+    observeAsMutableState(value)
+
+@Composable
+fun <R, T : R> MutableLiveData<T>.observeAsMutableState(initial: R): MutableState<R> =
+    observeAsState(initial) as MutableState<R>
 
 fun Context.composeView(body: @Composable () -> Unit): View =
     ComposeView(this).apply { setContent(body) }

@@ -2,11 +2,6 @@ package bobko.email.todo.util
 
 import android.content.SharedPreferences
 import androidx.annotation.MainThread
-import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import java.lang.ref.WeakReference
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
@@ -15,7 +10,7 @@ import kotlin.reflect.KProperty
 sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
     private val clazz: Class<T>,
     private val key: String,
-    val defaultValue: T,
+    private val defaultValue: T,
     private val ignoreIndex: Boolean
 ) : ReadOnlyProperty<Any?, Self> {
     @MainThread
@@ -55,9 +50,9 @@ sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
 class PrefKey<T : Any>(clazz: Class<T>, key: String, defaultValue: T) :
     AbstractPrefKey<T, PrefKey<T>>(clazz, key, defaultValue, ignoreIndex = true) {
 
-    private var _liveData = WeakReference<NotNullableMutableLiveData<T>>(null)
-    fun getLiveData(pref: SharedPreferences): NotNullableLiveData<T> =
-        _liveData.get() ?: NotNullableMutableLiveData(getValue(pref)).also {
+    private var _liveData = WeakReference<MutableInitializedLiveData<T>>(null)
+    fun getLiveData(pref: SharedPreferences): MutableInitializedLiveData<T> =
+        _liveData.get() ?: mutableInitializedLiveDataOf(getValue(pref)).also {
             _liveData = WeakReference(it)
         }
 
