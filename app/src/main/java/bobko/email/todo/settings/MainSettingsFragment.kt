@@ -100,7 +100,10 @@ private fun MainSettingsFragment.AccountsSection(accountsLiveData: InitializedLi
                     )
                 }
                 .onSizeChanged { if (currentIdx == 0 && itemHeight == 0) itemHeight = it.height },
-            trailing = {
+            trailing = trailing@{
+                if (accounts.size <= 1) {
+                    return@trailing
+                }
                 Icon(
                     painterResource(R.drawable.drag_handle_24),
                     "",
