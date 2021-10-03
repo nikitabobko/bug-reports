@@ -79,7 +79,9 @@ private fun AddAccountSettingsWizardFragment.MailItem(
             parentActivity().viewModel.accountTemplate = MutableLiveData(
                 smtpTemplate?.let { Account("Todo", "to@gmail.com", it) }
             )
-            findNavController().navigate(R.id.action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog)
+            findNavController().navigate(
+                R.id.action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog
+            )
         },
         icon = { icon() }
     ) {

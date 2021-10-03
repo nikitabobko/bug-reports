@@ -26,8 +26,8 @@ data class SmtpCredential(
                 )
             }
 
-        fun write(witerContext: PrefWriterContext, index: Int, value: SmtpCredential?) {
-            with(witerContext) {
+        fun write(writerContext: PrefWriterContext, index: Int, value: SmtpCredential?) {
+            with(writerContext) {
                 smtpServer[index] = value?.smtpServer
                 smtpServerPort[index] = value?.smtpServerPort
                 smtpUsername[index] = value?.username

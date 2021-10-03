@@ -29,14 +29,6 @@ fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, text, duration).show()
 }
 
-@Composable
-fun <T> MutableLiveData<T>.observeAsMutableState(): MutableState<T?> =
-    observeAsMutableState(value)
-
-@Composable
-fun <R, T : R> MutableLiveData<T>.observeAsMutableState(initial: R): MutableState<R> =
-    observeAsState(initial) as MutableState<R>
-
 fun Context.composeView(body: @Composable () -> Unit): View =
     ComposeView(this).apply { setContent(body) }
 

@@ -31,7 +31,9 @@ class MainSettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (PrefManager.readAccounts(requireContext()).value.count() == 0) {
-            findNavController().navigate(R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment)
+            findNavController().navigate(
+                R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
+            )
         }
     }
 
@@ -77,7 +79,9 @@ private fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun MainSettingsFragment.AccountsSection(accountsLiveData: InitializedLiveData<List<Account>>) {
+private fun MainSettingsFragment.AccountsSection(
+    accountsLiveData: InitializedLiveData<List<Account>>
+) {
     val accounts by accountsLiveData.observeAsState()
     var offsets by remember(accounts.size) { mutableStateOf(List(accounts.size) { 0 }) }
     var itemHeight by remember { mutableStateOf(0) }
