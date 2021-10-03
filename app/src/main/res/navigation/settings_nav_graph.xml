@@ -14,6 +14,11 @@
         <action
             android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsFragmentDialog"
             app:destination="@id/editAccountSettingsFragmentDialog" />
+        <action
+            android:id="@+id/action_mainSettingsFragment_to_textPrefillSettingsFragment"
+            app:destination="@id/textPrefillSettingsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <dialog
@@ -29,4 +34,8 @@
             app:destination="@id/editAccountSettingsFragmentDialog"
             app:popUpTo="@id/mainSettingsFragment" />
     </dialog>
+    <fragment
+        android:id="@+id/textPrefillSettingsFragment"
+        android:name="bobko.email.todo.settings.TextPrefillSettingsFragment"
+        android:label="TextPrefillSettingsFragment" />
 </navigation>

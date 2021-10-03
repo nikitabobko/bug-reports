@@ -6,7 +6,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.MutableLiveData
 
-interface NotNullableLiveData<T : Any> {
+interface NotNullableLiveData<out T : Any> {
     fun getValue(): T
 
     @Suppress("INAPPLICABLE_JVM_NAME")

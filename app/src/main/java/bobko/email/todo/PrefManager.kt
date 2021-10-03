@@ -1,19 +1,23 @@
 package bobko.email.todo
 
 import android.content.Context
-import androidx.preference.PreferenceManager
+import android.content.SharedPreferences
 import bobko.email.todo.model.Account
 import bobko.email.todo.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 object PrefManager {
     private val numberOfAccounts by PrefKey.delegate(defaultValue = 0)
     private var accounts = WeakReference<NotNullableMutableLiveData<List<Account>>>(null)
 
-    val appendAppNameThatSharedTheText by PrefKey.delegate(defaultValue = true)
-
     val prefillWithClipboardWhenStartedFromLauncher by PrefKey.delegate(defaultValue = false)
-    val prefillWithClipboardWhenStartedFromTile by PrefKey.delegate(defaultValue = true)
+    val prefillWithClipboardWhenStartedFromTile by PrefKey.delegate(defaultValue = doesSupportTiles)
+
+    val appendAppNameThatSharedTheText by PrefKey.delegate(defaultValue = true)
 
     val closeDialogAfterSendWhenStartedFromLauncher by PrefKey.delegate(defaultValue = false)
     val closeDialogAfterSendWhenStartedFromSharesheet by PrefKey.delegate(defaultValue = true)
