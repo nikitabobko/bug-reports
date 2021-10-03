@@ -27,11 +27,10 @@ class TextPrefillSettingsFragment : Fragment() {
 private fun TextPrefillSettingsFragment.TextPrefillSettingsScreen() {
     SettingsScreen(title = "Text prefill settings") {
         TextDivider("Prefill with clipboard when the app is")
-        val prefillWithClipboard = listOf(
+        WhenTheAppIsStartedFromSection(listOf(
             StartedFrom.Launcher.let { it to it.prefillPrefKey!! },
             StartedFrom.Tile.let { it to it.prefillPrefKey!! }
-        )
-        WhenTheAppIsStartedFromSection(prefillWithClipboard)
+        ))
 
         Divider()
         OtherSettingsSection()

@@ -28,19 +28,19 @@ object LastUsedAppFeatureManager {
 
     fun isFeatureEnabled(context: Context) =
         if (!isUsageAccessGranted(context)) {
-            liveDataWithInitialOf(false)
+            liveDataOf(false)
         } else {
-            context.readPref { appendAppNameThatSharedTheText.initializedLiveData }
+            context.readPref { appendAppNameThatSharedTheText.liveData }
         }
 
     fun shouldAskForPermissions(context: Context) =
         if (isUsageAccessGranted(context)) {
-            liveDataWithInitialOf(false)
+            liveDataOf(false)
         } else {
             context.readPref {
-                appendAppNameThatSharedTheText.initializedLiveData
+                appendAppNameThatSharedTheText.liveData
                     .then(
-                        isUsageAccessPromptShowedAtLeastOnce.initializedLiveData,
+                        isUsageAccessPromptShowedAtLeastOnce.liveData,
                         merge = { appendAppNameThatSharedTheText, isUsageAccessPromptShowedAtLeastOnce ->
                             appendAppNameThatSharedTheText && !isUsageAccessPromptShowedAtLeastOnce
                         }

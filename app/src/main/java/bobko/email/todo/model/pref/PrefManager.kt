@@ -18,7 +18,7 @@ object PrefManager {
     val closeDialogAfterSendWhenStartedFromTile by PrefKey.delegate(defaultValue = true)
 
     fun readAccounts(context: Context): InitializedLiveData<List<Account>> {
-        return accounts.get() ?: mutableInitializedLiveDataOf(
+        return accounts.get() ?: mutableLiveDataOf(
             context.readPref {
                 val size = numberOfAccounts.value
                 (0 until size).asSequence().map { Account.read(this@readPref, it)!! }.toList()
