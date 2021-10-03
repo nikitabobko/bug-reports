@@ -1,5 +1,6 @@
-package bobko.email.todo
+package bobko.email.todo.model
 
+import bobko.email.todo.model.pref.PrefManager
 import bobko.email.todo.util.PrefKey
 
 enum class StartedFrom(

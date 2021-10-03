@@ -3,13 +3,12 @@ package bobko.email.todo.settings
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.compose.material.*
+import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.fragment.app.Fragment
-import bobko.email.todo.LastUsedAppFeatureManager
-import bobko.email.todo.PrefManager
-import bobko.email.todo.StartedFrom
+import bobko.email.todo.model.StartedFrom
+import bobko.email.todo.model.pref.LastUsedAppFeatureManager
 import bobko.email.todo.util.composeView
 import bobko.email.todo.util.observeAsState
 import bobko.email.todo.util.writePref

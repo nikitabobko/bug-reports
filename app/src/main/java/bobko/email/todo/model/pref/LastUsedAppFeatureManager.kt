@@ -1,4 +1,4 @@
-package bobko.email.todo
+package bobko.email.todo.model.pref
 
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager

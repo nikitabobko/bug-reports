@@ -13,9 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
 import androidx.navigation.fragment.findNavController
-import bobko.email.todo.PrefManager
 import bobko.email.todo.model.Account
 import bobko.email.todo.model.SmtpCredential
+import bobko.email.todo.model.pref.PrefManager
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import bobko.email.todo.util.composeView
 import bobko.email.todo.util.observeAsMutableState
