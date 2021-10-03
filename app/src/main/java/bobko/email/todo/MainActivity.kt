@@ -160,14 +160,14 @@ private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<L
             .verticalScroll(rememberScrollState())
     ) {
         val sendInProgress = remember { mutableStateOf(false) }
-        val todoTextDraft by viewModel.todoTextDraft.observeAsState()
+        val todoTextDraft = viewModel.todoTextDraft.observeAsMutableState()
         val focusRequester = remember { FocusRequester() }
         val isError = remember { mutableStateOf(false) }
         TextField(
-            value = todoTextDraft,
+            value = todoTextDraft.value,
             isError = isError.value,
             onValueChange = {
-                viewModel.todoTextDraft.value = it
+                todoTextDraft.value = it
                 viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
             },
             modifier = Modifier
@@ -192,7 +192,7 @@ private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<L
             }
         )
         Buttons(todoTextDraft, isError, sendInProgress, accountsLive)
-        DisposableEffect(sendInProgress.value, todoTextDraft) {
+        DisposableEffect(sendInProgress.value, todoTextDraft.value) {
             focusRequester.requestFocus()
             onDispose { }
         }
@@ -201,12 +201,12 @@ private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<L
 
 @Composable
 private fun MainActivity.Buttons(
-    todoTextDraft: TextFieldValue,
+    todoTextDraft: MutableState<TextFieldValue>,
     isError: MutableState<Boolean>,
     sendInProgress: MutableState<Boolean>,
     accountsLive: InitializedLiveData<List<Account>>
 ) {
-    val canStartSending = !sendInProgress.value && todoTextDraft.text.isNotBlank()
+    val canStartSending = !sendInProgress.value && todoTextDraft.value.text.isNotBlank()
     val unspecifiedOrErrorColor =
         if (isError.value && canStartSending) MaterialTheme.colors.error else Color.Unspecified
     val greenOrErrorColor =
@@ -215,7 +215,7 @@ private fun MainActivity.Buttons(
     Row(verticalAlignment = Alignment.CenterVertically) {
         TextButton(
             onClick = {
-                viewModel.todoTextDraft.value = TextFieldValue()
+                todoTextDraft.value = TextFieldValue()
                 isError.value = false
             },
             enabled = canStartSending
@@ -228,9 +228,9 @@ private fun MainActivity.Buttons(
 
         val onClick = { account: Account ->
             scope.launch {
-                val prevText = todoTextDraft.text
+                val prevText = todoTextDraft.value.text
                 sendInProgress.value = true
-                viewModel.todoTextDraft.value = TextFieldValue()
+                todoTextDraft.value = TextFieldValue()
                 try {
                     withContext(Dispatchers.IO) {
                         EmailManager.sendEmailToMyself(account, "|", prevText.trim())
@@ -243,7 +243,7 @@ private fun MainActivity.Buttons(
                         this@Buttons.finish()
                     }
                 } catch (ex: Throwable) {
-                    viewModel.todoTextDraft.value = TextFieldValue(prevText)
+                    todoTextDraft.value = TextFieldValue(prevText)
                     isError.value = true
                 } finally {
                     sendInProgress.value = false
