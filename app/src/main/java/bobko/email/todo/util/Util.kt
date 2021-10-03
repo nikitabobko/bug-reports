@@ -2,6 +2,7 @@ package bobko.email.todo.util
 
 import android.content.Context
 import android.content.pm.PackageManager.NameNotFoundException
+import android.os.Build
 import android.view.View
 import android.widget.Toast
 import androidx.compose.runtime.Composable
@@ -40,3 +41,5 @@ fun sign(x: Int): Int {
         else -> 0
     }
 }
+
+val doesSupportTiles: Boolean get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N

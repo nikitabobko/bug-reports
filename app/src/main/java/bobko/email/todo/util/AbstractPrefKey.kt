@@ -1,11 +1,13 @@
 package bobko.email.todo.util
 
 import android.content.SharedPreferences
-import androidx.lifecycle.LiveData
-import org.jetbrains.annotations.NotNull
+import androidx.annotation.MainThread
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import java.lang.ref.WeakReference
-import kotlin.jvm.internal.CallableReference
-import kotlin.jvm.internal.ClassReference
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -13,9 +15,10 @@ import kotlin.reflect.KProperty
 sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
     private val clazz: Class<T>,
     private val key: String,
-    private val defaultValue: T,
+    val defaultValue: T,
     private val ignoreIndex: Boolean
 ) : ReadOnlyProperty<Any?, Self> {
+    @MainThread
     protected fun getValueInternal(pref: SharedPreferences, index: Int): T {
         require(!ignoreIndex || index == 0)
         val realKey = if (ignoreIndex) key else key + index
@@ -30,6 +33,7 @@ sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
         } as T
     }
 
+    @MainThread
     protected fun setValueInternal(editor: SharedPreferences.Editor, index: Int, value: T) {
         require(!ignoreIndex || index == 0)
         val realKey = if (ignoreIndex) key else key + index

@@ -1,6 +1,5 @@
 package bobko.email.todo.settings
 
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -8,28 +7,28 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import bobko.email.todo.PrefManager
 import bobko.email.todo.R
 import bobko.email.todo.StartedFrom
 import bobko.email.todo.model.Account
-import bobko.email.todo.ui.theme.EmailTodoTheme
-import bobko.email.todo.util.*
+import bobko.email.todo.util.NotNullableLiveData
+import bobko.email.todo.util.composeView
+import bobko.email.todo.util.observeAsNotNullableState
+import bobko.email.todo.util.sign
 
 class MainSettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,96 +50,27 @@ class MainSettingsFragment : Fragment() {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainSettingsFragment.MainSettingsActivityScreen(accounts: NotNullableLiveData<List<Account>>) {
-    EmailTodoTheme {
-        Surface {
-            val scrollState = rememberScrollState()
-            Column {
-                TopAppBar(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = { Text("Email TODO Settings") },
-                    navigationIcon = {
-                        IconButton(onClick = { requireActivity().finish() }) {
-                            Icon(Icons.Rounded.ArrowBack, "")
-                        }
-                    }
+    SettingsScreen("Email TODO Settings", rootSettingsScreen = true) {
+        TextDivider("Accounts")
+        AccountsSection(accounts)
+
+        Divider()
+        TextDivider("Close the dialog after send when the app is")
+        WhenTheAppIsStartedFromSection(
+            listOf(StartedFrom.Launcher, StartedFrom.Tile, StartedFrom.Sharesheet)
+                .map { it to it.closeAfterSendPrefKey }
+        )
+
+        Divider()
+        ListItem(
+            icon = { Spacer(modifier = Modifier.width(emailIconSize)) },
+            modifier = Modifier.clickable {
+                findNavController().navigate(
+                    R.id.action_mainSettingsFragment_to_textPrefillSettingsFragment
                 )
-
-                Column(modifier = Modifier.verticalScroll(scrollState)) {
-                    TextDivider("Accounts")
-                    AccountsSection(accounts)
-
-                    TextDivider("Close the dialog after send when the app is")
-                    WhenTheAppIsStartedFromSection(
-                        listOf(StartedFrom.Launcher, StartedFrom.Tile, StartedFrom.Sharesheet)
-                            .map { it to it.closeAfterSendPrefKey }
-                    )
-
-                    TextDivider("Prefill with clipboard when the app is")
-                    val prefillWithClipboard = listOf(
-                        StartedFrom.Launcher.let { it to it.prefillPrefKey!! },
-                        StartedFrom.Tile.let { it to it.prefillPrefKey!! }
-                    )
-                    WhenTheAppIsStartedFromSection(prefillWithClipboard)
-
-                    TextDivider("Other settings")
-                    OtherSettingsSection(
-                        enableAppendAppName = prefillWithClipboard.any { (_, prefKey) ->
-                            requireContext().readPref { prefKey.liveData }
-                                .observeAsNotNullableState().value
-                        }
-                    )
-                }
             }
-        }
-    }
-}
-
-@Composable
-private fun MainSettingsFragment.OtherSettingsSection(
-    enableAppendAppName: Boolean
-) {
-    val append by requireContext()
-        .readPref { PrefManager.appendAppNameThatSharedTheText.liveData }
-        .observeAsNotNullableState()
-    SwitchOrCheckBoxItem(
-        "Append app name that shared the text",
-        checked = append,
-        onChecked = if (enableAppendAppName) {
-            {
-                requireContext().writePref {
-                    PrefManager.appendAppNameThatSharedTheText.value = !append
-                }
-            }
-        } else null
-    )
-}
-
-@Composable
-private fun MainSettingsFragment.WhenTheAppIsStartedFromSection(
-    whenStartedFrom: List<Pair<StartedFrom, PrefKey<Boolean>>>
-) {
-    whenStartedFrom.forEach { (startedFrom, prefKey) ->
-        if (startedFrom == StartedFrom.Tile && Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            SwitchOrCheckBoxItem(
-                startedFrom.text,
-                description = "Tiles are available only since Android N",
-                checked = false,
-                onChecked = null,
-                useCheckBox = true
-            )
-        } else {
-            val checked by requireContext().readPref { prefKey.liveData }
-                .observeAsNotNullableState()
-            SwitchOrCheckBoxItem(
-                startedFrom.text,
-                checked = checked,
-                onChecked = {
-                    requireContext().writePref {
-                        prefKey.value = !checked
-                    }
-                },
-                useCheckBox = true
-            )
+        ) {
+            Text("Text prefill settings")
         }
     }
 }
@@ -238,61 +168,4 @@ private fun MainSettingsFragment.AccountsSection(accountsLiveData: NotNullableLi
         },
         text = { Text(text = "Add account") }
     )
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-private fun SwitchOrCheckBoxItem(
-    text: String,
-    checked: Boolean,
-    onChecked: (() -> Unit)?,
-    description: String? = null,
-    useCheckBox: Boolean = false
-) {
-    ListItem(
-        icon = { Spacer(modifier = Modifier.width(emailIconSize)) },
-        trailing = {
-            if (useCheckBox) {
-                Checkbox(checked = checked, onCheckedChange = null, enabled = onChecked != null)
-            } else {
-                Switch(checked = checked, onCheckedChange = null, enabled = onChecked != null)
-            }
-        },
-        modifier = run {
-            if (onChecked != null) Modifier.clickable(onClick = onChecked)
-            else Modifier
-        }
-    ) {
-        val disabledContentColor: Color = MaterialTheme.colors.onSurface
-            .copy(alpha = ContentAlpha.disabled)
-        val content = @Composable {
-            if (description != null) {
-                Column {
-                    Text(text)
-                    Text(
-                        description,
-                        color = disabledContentColor,
-                        style = MaterialTheme.typography.caption
-                    )
-                }
-            } else {
-                Text(text)
-            }
-        }
-        if (onChecked == null) {
-            CompositionLocalProvider(LocalContentAlpha provides disabledContentColor.alpha) {
-                content()
-            }
-        } else {
-            content()
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-private fun TextDivider(text: String) {
-    ListItem(modifier = Modifier.height(32.dp)) {
-        Text(text, color = MaterialTheme.colors.primary, style = MaterialTheme.typography.subtitle2)
-    }
 }
