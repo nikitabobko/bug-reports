@@ -127,7 +127,7 @@ fun WhenTheAppIsStartedFromSection(
             )
         } else {
             val context = LocalContext.current
-            val checked by context.readPref { prefKey.initializedLiveData }.observeAsState()
+            val checked by context.readPref { prefKey.liveData }.observeAsState()
             SwitchOrCheckBoxItem(
                 startedFrom.text,
                 checked = checked,

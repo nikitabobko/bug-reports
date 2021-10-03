@@ -51,8 +51,12 @@ class PrefKey<T : Any>(clazz: Class<T>, key: String, defaultValue: T) :
     AbstractPrefKey<T, PrefKey<T>>(clazz, key, defaultValue, ignoreIndex = true) {
 
     private var _liveData = WeakReference<MutableInitializedLiveData<T>>(null)
+
+    /**
+     * this [PrefKey] must be a singleton for this feature to work
+     */
     fun getLiveData(pref: SharedPreferences): MutableInitializedLiveData<T> =
-        _liveData.get() ?: mutableInitializedLiveDataOf(getValue(pref)).also {
+        _liveData.get() ?: mutableLiveDataOf(getValue(pref)).also {
             _liveData = WeakReference(it)
         }
 

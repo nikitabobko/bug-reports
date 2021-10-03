@@ -14,7 +14,7 @@ open class PrefReaderContext(
 
     @MainThread
     operator fun <T> IndexedPrefKey<T>.get(index: Int) = this.getValue(pref, index)
-    val <T : Any> PrefKey<T>.initializedLiveData: InitializedLiveData<T>
+    val <T : Any> PrefKey<T>.liveData: InitializedLiveData<T>
         get() = this.getLiveData(pref)
 }
 
