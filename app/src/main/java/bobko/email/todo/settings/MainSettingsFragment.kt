@@ -7,11 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.runtime.*
@@ -154,7 +152,12 @@ private fun MainSettingsFragment.AccountsSection(
                     )
                 )
             },
-            text = { Text(text = "${account.label} <${account.sendTo}>") }
+            text = {
+                Column {
+                    Text(text = account.label)
+                    Text(text = account.sendTo)
+                }
+            }
         )
     }
     ListItem(
