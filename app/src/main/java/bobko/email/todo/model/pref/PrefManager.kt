@@ -17,6 +17,8 @@ object PrefManager {
     val closeDialogAfterSendWhenStartedFromSharesheet by PrefKey.delegate(defaultValue = true)
     val closeDialogAfterSendWhenStartedFromTile by PrefKey.delegate(defaultValue = true)
 
+    val todoDraft by PrefKey.delegate(defaultValue = "")
+
     fun readAccounts(context: Context): InitializedLiveData<List<Account>> {
         return accounts.get() ?: mutableLiveDataOf(
             context.readPref {

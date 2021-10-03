@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
             viewModel.startedFrom = StartedFrom.Sharesheet
             val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
                 ?: LastUsedAppFeatureManager.getLastUsedAppLabel(this)
-            viewModel.prefillSharedText(this, sharedText, callerAppLabel)
+            viewModel.prefillSharedText(sharedText, callerAppLabel)
         }
 
         val accounts = PrefManager.readAccounts(this@MainActivity)
@@ -102,7 +102,6 @@ class MainActivity : ComponentActivity() {
             return
         }
         viewModel.prefillSharedText(
-            this,
             clipboard,
             LastUsedAppFeatureManager.getLastUsedAppLabel(this)
         )
