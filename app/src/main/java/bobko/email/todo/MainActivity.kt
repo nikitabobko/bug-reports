@@ -38,6 +38,7 @@ import bobko.email.todo.model.Account
 import bobko.email.todo.settings.SettingsActivity
 import bobko.email.todo.ui.theme.EmailTodoTheme
 import bobko.email.todo.util.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -136,8 +137,8 @@ fun MainActivity.MainActivityScreen(
     accountsLive: NotNullableLiveData<List<Account>>
 ) {
     EmailTodoTheme {
-        var sendInProgress by remember { mutableStateOf(false) }
-        var todoTextDraft by viewModel.todoTextDraft.observeAsNotNullableMutableState()
+        val sendInProgress = remember { mutableStateOf(false) }
+        var todoTextDraft = viewModel.todoTextDraft.observeAsNotNullableMutableState()
         val scope = rememberCoroutineScope()
         val focusRequester = remember { FocusRequester() }
         Column {
@@ -167,9 +168,9 @@ fun MainActivity.MainActivityScreen(
                         .verticalScroll(rememberScrollState())
                 ) {
                     TextField(
-                        value = todoTextDraft,
+                        value = todoTextDraft.value,
                         onValueChange = {
-                            todoTextDraft = it
+                            todoTextDraft.value = it
                             viewModel.todoTextDraftIsChangedAtLeastOnce.value = true
                         },
                         modifier = Modifier
@@ -181,95 +182,94 @@ fun MainActivity.MainActivityScreen(
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent
                         ),
-                        enabled = !sendInProgress,
-                        label = { Text(if (sendInProgress) "Sending..." else "Your todo is...") }
+                        enabled = !sendInProgress.value,
+                        label = { Text(if (sendInProgress.value) "Sending..." else "Your todo is...") }
                     )
                     DisposableEffect(sendInProgress) {
                         focusRequester.requestFocus()
                         onDispose { }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(
-                            onClick = { todoTextDraft = TextFieldValue() },
-                            enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                        ) { Text(text = "Clear") }
-                        IconButton(onClick = {
-                            startActivity(
-                                Intent(
-                                    this@MainActivityScreen,
-                                    SettingsActivity::class.java
-                                )
-                            )
-                        }) {
-                            Icon(Icons.Rounded.Settings, "", tint = MaterialTheme.colors.primary)
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        val onClick = { account: Account ->
-                            scope.launch {
-                                val body = todoTextDraft.text.trim()
-                                sendInProgress = true
-                                todoTextDraft = TextFieldValue()
-                                withContext(Dispatchers.IO) {
-                                    EmailManager.sendEmailToMyself(account, "|", body)
-                                }
-                                sendInProgress = false
-                                showToast("Successful!")
-                                val shouldCloseAfterSend =
-                                    readPref { viewModel.startedFrom.closeAfterSendPrefKey.value }
-                                if (shouldCloseAfterSend) {
-                                    this@MainActivityScreen.finish()
-                                }
-                            }
-                            Unit
-                        }
-                        val minButtonsToStartFolding = 4
-                        val numOfButtonsToFoldDownTo = 2
-                        val accounts by accountsLive.observeAsNotNullableState()
-                        val doFold = accounts.count() >= minButtonsToStartFolding
-                        if (doFold) {
-                            Box {
-                                var expanded by remember { mutableStateOf(false) }
-                                DropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false },
-                                    properties = PopupProperties(focusable = false) // Don't hide keyboard
-                                ) {
-                                    accounts.drop(numOfButtonsToFoldDownTo)
-                                        .forEach {
-                                            DropdownMenuItem(onClick = { onClick(it) }) {
-                                                Text(it.label, color = MaterialTheme.colors.primary)
-                                            }
-                                        }
-                                }
-                                IconButton(
-                                    onClick = { expanded = true },
-                                    enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                                ) {
-                                    if (!sendInProgress && todoTextDraft.text.isNotBlank()) {
-                                        Icon(
-                                            Icons.Rounded.MoreVert,
-                                            "",
-                                            tint = MaterialTheme.colors.primary
-                                        )
-                                    } else {
-                                        Icon(Icons.Rounded.MoreVert, "")
-                                    }
-                                }
-                            }
-                        }
+                    Buttons(todoTextDraft, sendInProgress, scope, viewModel, accountsLive)
+                }
+            }
+        }
+    }
+}
 
-                        accounts.let { if (doFold) it.take(numOfButtonsToFoldDownTo) else it }
-                            .reversed()
-                            .forEach {
-                                Spacer(modifier = Modifier.width(8.dp))
-                                TextButton(
-                                    onClick = { onClick(it) },
-                                    enabled = !sendInProgress && todoTextDraft.text.isNotBlank()
-                                ) { Text(it.label) }
+@Composable
+private fun MainActivity.Buttons(
+    todoTextDraft: MutableState<TextFieldValue>,
+    sendInProgress: MutableState<Boolean>,
+    scope: CoroutineScope,
+    viewModel: MainActivityViewModel,
+    accountsLive: NotNullableLiveData<List<Account>>
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val mainButtonsEnabled = !sendInProgress.value && todoTextDraft.value.text.isNotBlank()
+        TextButton(
+            onClick = { todoTextDraft.value = TextFieldValue() },
+            enabled = mainButtonsEnabled
+        ) { Text(text = "Clear") }
+        IconButton(onClick = {
+            startActivity(Intent(this@Buttons, SettingsActivity::class.java))
+        }) { Icon(Icons.Rounded.Settings, "", tint = MaterialTheme.colors.primary) }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        val onClick = { account: Account ->
+            scope.launch {
+                val body = todoTextDraft.value.text.trim()
+                sendInProgress.value = true
+                todoTextDraft.value = TextFieldValue()
+                withContext(Dispatchers.IO) {
+                    EmailManager.sendEmailToMyself(account, "|", body)
+                }
+                sendInProgress.value = false
+                showToast("Successful!")
+                val shouldCloseAfterSend =
+                    readPref { viewModel.startedFrom.closeAfterSendPrefKey.value }
+                if (shouldCloseAfterSend) {
+                    this@Buttons.finish()
+                }
+            }
+            Unit
+        }
+        val minButtonsToStartFolding = 4
+        val numOfButtonsToFoldDownTo = 2
+        val accounts by accountsLive.observeAsNotNullableState()
+        val doFold = accounts.count() >= minButtonsToStartFolding
+        if (doFold) {
+            Box {
+                var expanded by remember { mutableStateOf(false) }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    properties = PopupProperties(focusable = false) // Don't hide keyboard
+                ) {
+                    accounts.drop(numOfButtonsToFoldDownTo)
+                        .forEach {
+                            DropdownMenuItem(onClick = { onClick(it) }) {
+                                Text(it.label, color = MaterialTheme.colors.primary)
                             }
+                        }
+                }
+                IconButton(onClick = { expanded = true }, enabled = mainButtonsEnabled) {
+                    if (mainButtonsEnabled) {
+                        Icon(Icons.Rounded.MoreVert, "", tint = MaterialTheme.colors.primary)
+                    } else {
+                        Icon(Icons.Rounded.MoreVert, "")
                     }
                 }
             }
         }
+
+        accounts.let { if (doFold) it.take(numOfButtonsToFoldDownTo) else it }
+            .reversed()
+            .forEach {
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(onClick = { onClick(it) }, enabled = mainButtonsEnabled) {
+                    Text(it.label)
+                }
+            }
     }
 }
