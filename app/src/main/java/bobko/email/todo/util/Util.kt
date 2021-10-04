@@ -29,6 +29,7 @@ fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
 fun Context.composeView(body: @Composable () -> Unit): View =
     ComposeView(this).apply { setContent(body) }
 
+// TODO remove? I don't really need it
 @Composable
 fun <T : Any> MutableInitializedLiveData<T>.observeAsMutableState(): MutableState<T> {
     val mutableSource = this
