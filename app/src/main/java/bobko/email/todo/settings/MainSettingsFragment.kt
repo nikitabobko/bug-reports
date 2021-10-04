@@ -12,6 +12,7 @@ import androidx.compose.material.*
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Email
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
@@ -88,11 +89,18 @@ private fun MainSettingsFragment.AccountsSection(
         val offsetUpperBound = (accounts.lastIndex - currentIdx) * itemHeight
         ListItem(
             icon = {
-                knownSmtpCredentials
-                    .singleOrNull {
-                        it.smtpCredential.smtpServer == account.credential.smtpServer
-                    }
-                    ?.Icon()
+                val knownCredential = knownSmtpCredentials.singleOrNull {
+                    it.smtpCredential.smtpServer == account.credential.smtpServer
+                }
+                if (knownCredential != null) {
+                    knownCredential.Icon()
+                } else {
+                    Icon(
+                        Icons.Rounded.Email,
+                        "Email (SMTP)",
+                        modifier = Modifier.size(emailIconSize)
+                    )
+                }
             },
             modifier = Modifier
                 .offset(y = with(LocalDensity.current) { offsets[currentIdx].toDp() })
