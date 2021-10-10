@@ -49,7 +49,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Some magic to show keyboard on Activity start
+        // Some magic to show keyboard on Activity start. It
+        // depends on the device whether this call is required!
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
         (intent.getSerializableExtra(STARTED_FROM) as? StartedFrom)?.let {
