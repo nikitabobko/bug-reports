@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import bobko.email.todo.R
@@ -69,6 +70,10 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveDat
             }
         ) {
             Text("Text prefill settings")
+        }
+
+        OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Text("Reset settings to default")
         }
     }
 }
