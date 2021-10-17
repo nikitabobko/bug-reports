@@ -1,7 +1,9 @@
 package bobko.email.todo.util
 
 import android.content.SharedPreferences
+import android.view.WindowId
 import androidx.annotation.MainThread
+import androidx.compose.runtime.Composable
 import java.lang.ref.WeakReference
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
@@ -13,6 +15,10 @@ sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
     private val defaultValue: T,
     private val ignoreIndex: Boolean
 ) : ReadOnlyProperty<Any?, Self> {
+    init {
+        allKeys.add(WeakReference(this))
+    }
+
     @MainThread
     protected fun getValueInternal(pref: SharedPreferences, index: Int): T {
         require(!ignoreIndex || index == 0)
@@ -45,6 +51,16 @@ sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>) = this as Self
+
+    companion object {
+        private val allKeys: MutableList<WeakReference<AbstractPrefKey<*, *>>> = ArrayList()
+
+        fun resetAllPreferences(editor: SharedPreferences.Editor) {
+            allKeys.forEach {
+
+            }
+        }
+    }
 }
 
 class PrefKey<T : Any>(clazz: Class<T>, key: String, defaultValue: T) :

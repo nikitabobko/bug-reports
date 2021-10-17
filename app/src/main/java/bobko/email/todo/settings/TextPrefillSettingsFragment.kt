@@ -7,6 +7,7 @@ import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.fragment.app.Fragment
+import androidx.transition.TransitionInflater
 import bobko.email.todo.model.StartedFrom
 import bobko.email.todo.model.pref.LastUsedAppFeatureManager
 import bobko.email.todo.util.composeView
@@ -14,6 +15,11 @@ import bobko.email.todo.util.observeAsState
 import bobko.email.todo.util.writePref
 
 class TextPrefillSettingsFragment : Fragment() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        TransitionInflater.from(context).inflateTransition(android.R.transition.move)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
