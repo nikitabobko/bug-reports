@@ -141,8 +141,8 @@ fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<Accou
             Surface(
                 modifier = Modifier.clip(
                     RoundedCornerShape(
-                        topStart = 10.dp,
-                        topEnd = 10.dp
+                        topStart = 16.dp,
+                        topEnd = 16.dp
                     )
                 )
             ) {
