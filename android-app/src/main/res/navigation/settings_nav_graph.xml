@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/mainSettingsFragment"
-        android:name="bobko.email.todo.settings.MainSettingsFragment"
+        android:name="bobko.todomail.settings.MainSettingsFragment"
         android:label="MainSettingsFragment">
         <action
             android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsWizardFragment"
@@ -25,11 +25,11 @@
 
     <dialog
         android:id="@+id/editAccountSettingsFragmentDialog"
-        android:name="bobko.email.todo.settings.EditAccountSettingsFragment"
+        android:name="bobko.todomail.settings.EditAccountSettingsFragment"
         android:label="EditAccountSettingsFragment" />
     <dialog
         android:id="@+id/addAccountSettingsWizardFragment"
-        android:name="bobko.email.todo.settings.AddAccountSettingsWizardFragment"
+        android:name="bobko.todomail.settings.AddAccountSettingsWizardFragment"
         android:label="AddAccountSettingsWizardFragment" >
         <action
             android:id="@+id/action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog"
@@ -38,6 +38,6 @@
     </dialog>
     <fragment
         android:id="@+id/textPrefillSettingsFragment"
-        android:name="bobko.email.todo.settings.TextPrefillSettingsFragment"
+        android:name="bobko.todomail.settings.TextPrefillSettingsFragment"
         android:label="TextPrefillSettingsFragment" />
 </navigation>

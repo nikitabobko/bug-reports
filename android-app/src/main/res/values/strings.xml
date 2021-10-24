@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Email TODO</string>
+    <string name="app_name">Todomail</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>
