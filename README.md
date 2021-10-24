@@ -18,6 +18,8 @@ The app usages:
 
 # Screenshots
 
+// TODO update screenshots 
+
 <img src=".res/screenshot_main_dialog.png" width="380"> <img src=".res/screenshot_settings.png" width="380">
 
 # But why?
