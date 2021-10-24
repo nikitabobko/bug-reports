@@ -4,9 +4,8 @@ plugins {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 31
 
-    compileSdkVersion(31)
     defaultConfig {
         applicationId = "bobko.email.todo"
         minSdk = 22
@@ -38,14 +37,13 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = rootProject.extra["compose_version"] as String
-        kotlinCompilerVersion = "1.5.30"
     }
     packagingOptions {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/NOTICE.md"
+            excludes += "META-INF/LICENSE.md"
         }
-        exclude("META-INF/NOTICE.md")
-        exclude("META-INF/LICENSE.md")
     }
 }
 
@@ -58,8 +56,8 @@ dependencies {
     implementation("androidx.compose.material:material:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.ui:ui-tooling-preview:${rootProject.extra["compose_version"]}")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.activity:activity-compose:1.4.0-beta01")
-    implementation("androidx.compose.runtime:runtime-livedata:1.1.0-alpha05")
+    implementation("androidx.activity:activity-compose:1.4.0-rc01")
+    implementation("androidx.compose.runtime:runtime-livedata:1.1.0-alpha06")
     implementation("androidx.preference:preference-ktx:1.1.1")
 
     // JetPack navigation
