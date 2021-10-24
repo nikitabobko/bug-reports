@@ -62,7 +62,6 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveDat
 
         Divider()
         ListItem(
-            icon = { Spacer(modifier = Modifier.width(emailIconSize)) },
             modifier = Modifier.clickable {
                 findNavController().navigate(
                     R.id.action_mainSettingsFragment_to_textPrefillSettingsFragment
