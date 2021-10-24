@@ -1,4 +1,4 @@
-# email-todo
+# Todomail
 
 ![icon](.res/icon.png)
 
@@ -13,8 +13,8 @@ Features:
 The app usages:
 * Todo app
 * Any other usages? If you have one feel free to share with me by 
-  [creating an issue](https://github.com/nikitabobko/email-todo/issues) or by sending a
-  [Pull request](https://github.com/nikitabobko/email-todo/pulls) to this README.md file
+  [creating an issue](https://github.com/nikitabobko/todomail/issues) or by sending a
+  [Pull request](https://github.com/nikitabobko/todomail/pulls) to this README.md file
 
 # Screenshots
 
@@ -29,7 +29,7 @@ have "one more" place to pull your tasks from. One day you will be lazy and you 
 abandon your todo app. I tried it, it doesn't work, at least for me.
 
 The situation is different for email. You most likely already have one, you most likely
-already receive important stuff on your email (so it's hard to abandon). `email-todo`
+already receive important stuff on your email (so it's hard to abandon). `Todomail`
 doesn't create [one more standard](https://xkcd.com/927/), it adapts one of the most
 popular and flexible standard to the needs of todo.
 
@@ -46,7 +46,7 @@ provider and filtering features they provide.
 # Install the app
 
 * Google Play: publishing is in progress
-* Download the APK from GitHub [release page](https://github.com/nikitabobko/email-todo/releases)
+* Download the APK from GitHub [release page](https://github.com/nikitabobko/todomail/releases)
 
 # Tips
 

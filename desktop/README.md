@@ -16,7 +16,7 @@ time (+ integration with Android Tiles and Android sharing menu). On desktop, I 
 keyboard and I can type fast so it's not a problem for me to fill in destination address every
 time (thanks to `To:` field completion in Gmail).
 
-Maybe, one day I will write fully-fledged `email-todo` solution for desktops (no, I won't).
+Maybe, one day I will write fully-fledged `Todomail` solution for desktops (no, I won't).
 
 # Simple bash scripts (for Linux but it should be possible to make them work on macOS)
 

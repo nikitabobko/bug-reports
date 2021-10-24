@@ -1,0 +1,44 @@
+package bobko.todomail.model.pref
+
+import android.content.Context
+import bobko.todomail.model.Account
+import bobko.todomail.util.*
+import kotlinx.coroutines.flow.*
+import java.lang.ref.WeakReference
+
+object PrefManager {
+    private val numberOfAccounts by PrefKey.delegate(defaultValue = 0)
+    private var accounts = WeakReference<MutableInitializedLiveData<List<Account>>>(null)
+
+    val prefillWithClipboardWhenStartedFromLauncher by PrefKey.delegate(defaultValue = false)
+    val prefillWithClipboardWhenStartedFromTile by PrefKey.delegate(defaultValue = doesSupportTiles)
+
+    val closeDialogAfterSendWhenStartedFromLauncher by PrefKey.delegate(defaultValue = false)
+    val closeDialogAfterSendWhenStartedFromSharesheet by PrefKey.delegate(defaultValue = true)
+    val closeDialogAfterSendWhenStartedFromTile by PrefKey.delegate(defaultValue = true)
+
+    val todoDraft by PrefKey.delegate(defaultValue = "")
+
+    fun readAccounts(context: Context): InitializedLiveData<List<Account>> {
+        return accounts.get() ?: mutableLiveDataOf(
+            context.readPref {
+                val size = numberOfAccounts.value
+                (0 until size).map { Account.read(this@readPref, it)!! }
+            }
+        ).also {
+            accounts = WeakReference(it)
+        }
+    }
+
+    fun writeAccounts(context: Context, accounts: List<Account>) {
+        require(accounts.distinctBy { it.label }.size == accounts.size)
+        context.writePref {
+            (0 until numberOfAccounts.value).forEach { Account.write(this@writePref, it, null) }
+            accounts.forEachIndexed { index, account ->
+                Account.write(this@writePref, index, account)
+            }
+            numberOfAccounts.value = accounts.size
+        }
+        PrefManager.accounts.get()?.value = accounts
+    }
+}

@@ -8,5 +8,5 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "Email TODO"
+rootProject.name = "Todomail"
 include(":android-app")
