@@ -4,9 +4,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven {
-            url "https://maven.java.net/content/groups/public/"
+            setUrl("https://maven.java.net/content/groups/public/")
         }
     }
 }
 rootProject.name = "Email TODO"
-include ':app'
+include(":app")
