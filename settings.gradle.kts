@@ -9,4 +9,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Email TODO"
-include(":app")
+include(":android-app")
