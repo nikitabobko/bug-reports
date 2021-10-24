@@ -73,7 +73,6 @@ fun SwitchOrCheckBoxItem(
     useCheckBox: Boolean = false
 ) {
     ListItem(
-        icon = { Spacer(modifier = Modifier.width(emailIconSize)) },
         trailing = {
             if (useCheckBox) {
                 Checkbox(checked = checked, onCheckedChange = null, enabled = onChecked != null)
