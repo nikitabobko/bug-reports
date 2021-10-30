@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.getSystemService
 import bobko.todomail.model.pref.LastUsedAppFeatureManager
-import bobko.todomail.model.Account
+import bobko.todomail.model.SendReceiveRoute
 import bobko.todomail.model.StartedFrom
 import bobko.todomail.model.pref.PrefManager
 import bobko.todomail.settings.SettingsActivity
@@ -66,12 +66,13 @@ class MainActivity : ComponentActivity() {
             viewModel.prefillSharedText(sharedText, callerAppLabel)
         }
 
-        val accounts = PrefManager.readAccounts(this@MainActivity)
-        if (accounts.value.count() == 0) {
-            startActivity(Intent(this, SettingsActivity::class.java))
+        val routes = PrefManager.readSendReceiveRoutes(this@MainActivity)
+        if (routes.value.count() == 0) {
+            finish()
+            startActivity(Intent(this, SettingsActivity::class.java)) // TODO should be deeplink?
         }
         setContent {
-            MainActivityScreen(accounts)
+            MainActivityScreen(routes)
         }
         window.setGravity(Gravity.BOTTOM)
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -123,7 +124,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<Account>>) {
+fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<SendReceiveRoute>>) {
     EmailTodoTheme {
         Column {
             // Transparent Surface for keeping space for Android context menu
@@ -153,7 +154,7 @@ fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<Accou
 }
 
 @Composable
-private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<List<Account>>) {
+private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<List<SendReceiveRoute>>) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -204,7 +205,7 @@ private fun MainActivity.Buttons(
     todoTextDraft: MutableState<TextFieldValue>,
     isError: MutableState<Boolean>,
     sendInProgress: MutableState<Boolean>,
-    accountsLive: InitializedLiveData<List<Account>>
+    accountsLive: InitializedLiveData<List<SendReceiveRoute>>
 ) {
     val canStartSending = !sendInProgress.value && todoTextDraft.value.text.isNotBlank()
     val unspecifiedOrErrorColor =
@@ -212,7 +213,7 @@ private fun MainActivity.Buttons(
     val greenOrErrorColor =
         if (isError.value) MaterialTheme.colors.error else MaterialTheme.colors.primary
     val scope = rememberCoroutineScope()
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    CenteredRow {
         TextButton(
             onClick = {
                 todoTextDraft.value = TextFieldValue()
@@ -226,7 +227,7 @@ private fun MainActivity.Buttons(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        val onClick = { account: Account ->
+        val onClick = { sendReceiveRoute: SendReceiveRoute ->
             scope.launch {
                 val prevText = todoTextDraft.value.text
                 sendInProgress.value = true
@@ -234,7 +235,7 @@ private fun MainActivity.Buttons(
                 try {
                     withContext(Dispatchers.IO) {
                         EmailManager.sendEmailToMyself(
-                            account,
+                            sendReceiveRoute,
                             prevText.lineSequence().first(),
                             prevText.lineSequence().drop(1).joinToString("\n").trim()
                         )

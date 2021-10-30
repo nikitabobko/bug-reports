@@ -23,7 +23,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import bobko.todomail.R
 import bobko.todomail.model.StartedFrom
-import bobko.todomail.model.Account
+import bobko.todomail.model.SendReceiveRoute
 import bobko.todomail.model.pref.PrefManager
 import bobko.todomail.util.InitializedLiveData
 import bobko.todomail.util.composeView
@@ -33,9 +33,9 @@ import bobko.todomail.util.sign
 class MainSettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (PrefManager.readAccounts(requireContext()).value.count() == 0) {
+        if (PrefManager.readSendReceiveRoutes(requireContext()).value.count() == 0) {
             findNavController().navigate(
-                R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
+                R.id.action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment
             )
         }
     }
@@ -45,13 +45,13 @@ class MainSettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = requireContext().composeView {
-        MainSettingsActivityScreen(PrefManager.readAccounts(requireContext()))
+        MainSettingsActivityScreen(PrefManager.readSendReceiveRoutes(requireContext()))
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveData<List<Account>>) {
+fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveData<List<SendReceiveRoute>>) {
     SettingsScreen("Todomail Settings", rootSettingsScreen = true) {
         TextDivider("Accounts")
         AccountsSection(accounts)
@@ -86,18 +86,18 @@ private fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun MainSettingsFragment.AccountsSection(
-    accountsLiveData: InitializedLiveData<List<Account>>
+    accountsLiveData: InitializedLiveData<List<SendReceiveRoute>>
 ) {
     val accounts by accountsLiveData.observeAsState()
     var offsets by remember(accounts.size) { mutableStateOf(List(accounts.size) { 0 }) }
     var itemHeight by remember { mutableStateOf(0) }
-    accounts.forEachIndexed { currentIdx, account ->
+    accounts.forEachIndexed { currentIdx, sendReceiveRoute ->
         val offsetLowerBound = -currentIdx * itemHeight
         val offsetUpperBound = (accounts.lastIndex - currentIdx) * itemHeight
         ListItem(
             icon = {
-                val knownCredential = knownSmtpCredentials.singleOrNull {
-                    it.smtpCredential.smtpServer == account.credential.smtpServer
+                val knownCredential = KnownSmtpCredential.values().singleOrNull {
+                    sendReceiveRoute.sendTo.endsWith(it.domain)
                 }
                 if (knownCredential != null) {
                     knownCredential.Icon()
@@ -113,7 +113,7 @@ private fun MainSettingsFragment.AccountsSection(
                 .offset(y = with(LocalDensity.current) { offsets[currentIdx].toDp() })
                 .clickable {
                     findNavController().navigate(
-                        R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
+                        R.id.action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment
                     )
                 }
                 .onSizeChanged { if (currentIdx == 0 && itemHeight == 0) itemHeight = it.height },
@@ -152,25 +152,25 @@ private fun MainSettingsFragment.AccountsSection(
                             val newAccounts = when {
                                 currentIdx < newIdx -> accounts.subList(0, currentIdx) +
                                         accounts.subList(currentIdx + 1, newIdx + 1) +
-                                        listOf(account) +
+                                        listOf(sendReceiveRoute) +
                                         accounts.subList(newIdx + 1, accounts.size)
                                 newIdx < currentIdx -> accounts.subList(0, newIdx) +
-                                        listOf(account) +
+                                        listOf(sendReceiveRoute) +
                                         accounts.subList(newIdx, currentIdx) +
                                         accounts.subList(currentIdx + 1, accounts.size)
                                 else -> accounts
                             }
 
                             offsets = List(accounts.size) { 0 }
-                            PrefManager.writeAccounts(requireContext(), newAccounts)
+                            PrefManager.writeSendReceiveRoutes(requireContext(), newAccounts)
                         }
                     )
                 )
             },
             text = {
                 Column {
-                    Text(text = account.label)
-                    Text(text = account.sendTo)
+                    Text(text = sendReceiveRoute.label)
+                    Text(text = sendReceiveRoute.sendTo)
                 }
             }
         )
@@ -185,7 +185,7 @@ private fun MainSettingsFragment.AccountsSection(
         },
         modifier = Modifier.clickable {
             findNavController().navigate(
-                R.id.action_mainSettingsFragment_to_addAccountSettingsWizardFragment
+                R.id.action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment
             )
         },
         text = { Text(text = "Add account") }

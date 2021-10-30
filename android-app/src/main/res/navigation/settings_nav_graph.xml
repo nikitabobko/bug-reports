@@ -1,43 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/settings_nav_graph"
-    app:startDestination="@id/mainSettingsFragment">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/settings_nav_graph"
+        app:startDestination="@id/mainSettingsFragment">
 
     <fragment
-        android:id="@+id/mainSettingsFragment"
-        android:name="bobko.todomail.settings.MainSettingsFragment"
-        android:label="MainSettingsFragment">
+            android:id="@+id/mainSettingsFragment"
+            android:name="bobko.todomail.settings.MainSettingsFragment"
+            android:label="MainSettingsFragment">
         <action
-            android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsWizardFragment"
-            app:destination="@id/addAccountSettingsWizardFragment" />
+                android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsWizardFragment"
+                app:destination="@id/addAccountSettingsWizardFragment" />
         <action
-            android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsFragmentDialog"
-            app:destination="@id/editAccountSettingsFragmentDialog" />
+                android:id="@+id/action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment"
+                app:destination="@id/editSendReceiveRouteSettingsFragment"
+                app:enterAnim="@anim/nav_default_enter_anim"
+                app:exitAnim="@anim/nav_default_exit_anim"
+                app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+                app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
-            android:id="@+id/action_mainSettingsFragment_to_textPrefillSettingsFragment"
-            app:destination="@id/textPrefillSettingsFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+                android:id="@+id/action_mainSettingsFragment_to_textPrefillSettingsFragment"
+                app:destination="@id/textPrefillSettingsFragment"
+                app:enterAnim="@anim/nav_default_enter_anim"
+                app:exitAnim="@anim/nav_default_exit_anim"
+                app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+                app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
+    <fragment
+            android:id="@+id/editSendReceiveRouteSettingsFragment"
+            android:name="bobko.todomail.settings.sendreceiveroute.EditSendReceiveRouteSettingsFragment"
+            android:label="EditSendReceiveRouteSettingsFragment" />
     <dialog
-        android:id="@+id/editAccountSettingsFragmentDialog"
-        android:name="bobko.todomail.settings.EditAccountSettingsFragment"
-        android:label="EditAccountSettingsFragment" />
-    <dialog
-        android:id="@+id/addAccountSettingsWizardFragment"
-        android:name="bobko.todomail.settings.AddAccountSettingsWizardFragment"
-        android:label="AddAccountSettingsWizardFragment" >
+            android:id="@+id/addAccountSettingsWizardFragment"
+            android:name="bobko.todomail.settings.AddAccountSettingsWizardFragment"
+            android:label="AddAccountSettingsWizardFragment">
         <action
-            android:id="@+id/action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog"
-            app:destination="@id/editAccountSettingsFragmentDialog"
-            app:popUpTo="@id/mainSettingsFragment" />
+                android:id="@+id/action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog"
+                app:destination="@id/editSendReceiveRouteSettingsFragment"
+                app:popUpTo="@id/mainSettingsFragment" />
     </dialog>
     <fragment
-        android:id="@+id/textPrefillSettingsFragment"
-        android:name="bobko.todomail.settings.TextPrefillSettingsFragment"
-        android:label="TextPrefillSettingsFragment" />
+            android:id="@+id/textPrefillSettingsFragment"
+            android:name="bobko.todomail.settings.TextPrefillSettingsFragment"
+            android:label="TextPrefillSettingsFragment" />
 </navigation>
