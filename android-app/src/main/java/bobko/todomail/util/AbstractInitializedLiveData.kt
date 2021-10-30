@@ -25,9 +25,10 @@ class MutableInitializedLiveData<T : Any>(liveData: MutableLiveData<T>) :
         }
 }
 
-fun <T : Any> liveDataOf(value: T) = InitializedLiveData(MutableLiveData(value))
+fun <T : Any> liveDataOf(value: T): InitializedLiveData<T> =
+    InitializedLiveData(MutableLiveData(value))
 
-fun <T : Any> mutableLiveDataOf(value: T) =
+fun <T : Any> mutableLiveDataOf(value: T): MutableInitializedLiveData<T> =
     MutableInitializedLiveData(MutableLiveData(value))
 
 @Composable
