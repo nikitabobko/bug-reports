@@ -1,14 +1,14 @@
 package bobko.todomail.model.pref
 
 import android.content.Context
-import bobko.todomail.model.Account
+import bobko.todomail.model.SendReceiveRoute
 import bobko.todomail.util.*
 import kotlinx.coroutines.flow.*
 import java.lang.ref.WeakReference
 
 object PrefManager {
     private val numberOfAccounts by PrefKey.delegate(defaultValue = 0)
-    private var accounts = WeakReference<MutableInitializedLiveData<List<Account>>>(null)
+    private var accounts = WeakReference<MutableInitializedLiveData<List<SendReceiveRoute>>>(null)
 
     val prefillWithClipboardWhenStartedFromLauncher by PrefKey.delegate(defaultValue = false)
     val prefillWithClipboardWhenStartedFromTile by PrefKey.delegate(defaultValue = doesSupportTiles)
@@ -19,26 +19,26 @@ object PrefManager {
 
     val todoDraft by PrefKey.delegate(defaultValue = "")
 
-    fun readAccounts(context: Context): InitializedLiveData<List<Account>> {
+    fun readSendReceiveRoutes(context: Context): InitializedLiveData<List<SendReceiveRoute>> {
         return accounts.get() ?: mutableLiveDataOf(
             context.readPref {
                 val size = numberOfAccounts.value
-                (0 until size).map { Account.read(this@readPref, it)!! }
+                (0 until size).map { SendReceiveRoute.read(this@readPref, it)!! }
             }
         ).also {
             accounts = WeakReference(it)
         }
     }
 
-    fun writeAccounts(context: Context, accounts: List<Account>) {
-        require(accounts.distinctBy { it.label }.size == accounts.size)
+    fun writeSendReceiveRoutes(context: Context, sendReceiveRoutes: List<SendReceiveRoute>) {
+        require(sendReceiveRoutes.distinctBy { it.label }.size == sendReceiveRoutes.size)
         context.writePref {
-            (0 until numberOfAccounts.value).forEach { Account.write(this@writePref, it, null) }
-            accounts.forEachIndexed { index, account ->
-                Account.write(this@writePref, index, account)
+            (0 until numberOfAccounts.value).forEach { SendReceiveRoute.write(this@writePref, it, null) }
+            sendReceiveRoutes.forEachIndexed { index, account ->
+                SendReceiveRoute.write(this@writePref, index, account)
             }
-            numberOfAccounts.value = accounts.size
+            numberOfAccounts.value = sendReceiveRoutes.size
         }
-        PrefManager.accounts.get()?.value = accounts
+        PrefManager.accounts.get()?.value = sendReceiveRoutes
     }
 }

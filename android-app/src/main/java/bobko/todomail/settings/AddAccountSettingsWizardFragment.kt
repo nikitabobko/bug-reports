@@ -11,12 +11,12 @@ import androidx.compose.material.icons.rounded.Email
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import bobko.todomail.R
-import bobko.todomail.model.Account
+import bobko.todomail.model.SendReceiveRoute
 import bobko.todomail.model.SmtpCredential
 import bobko.todomail.theme.EmailTodoTheme
+import bobko.todomail.util.CenteredRow
 import bobko.todomail.util.composeView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -41,7 +41,7 @@ fun AddAccountSettingsWizardFragment.AddAccountSettingsWizardFragmentScreen() {
                     MailItem(
                         icon = { it.Icon() },
                         text = it.label,
-                        smtpTemplate = it.smtpCredential
+                        smtpCredentialTemplate = it.smtpCredential
                     )
                 }
                 MailItem(
@@ -53,9 +53,9 @@ fun AddAccountSettingsWizardFragment.AddAccountSettingsWizardFragmentScreen() {
                         )
                     },
                     "Email (SMTP)",
-                    smtpTemplate = null
+                    smtpCredentialTemplate = null
                 )
-                Row(modifier = Modifier.padding(8.dp)) {
+                CenteredRow(modifier = Modifier.padding(8.dp)) {
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = { findNavController().navigateUp() }) {
                         Text("Cancel")
@@ -71,13 +71,13 @@ fun AddAccountSettingsWizardFragment.AddAccountSettingsWizardFragmentScreen() {
 private fun AddAccountSettingsWizardFragment.MailItem(
     icon: @Composable () -> Unit,
     text: String,
-    smtpTemplate: SmtpCredential?
+    smtpCredentialTemplate: SmtpCredential?
 ) {
     ListItem(
         modifier = Modifier.clickable {
-            parentActivity().viewModel.accountTemplate = MutableLiveData(
-                smtpTemplate?.let { Account("Todo", "to@gmail.com", it) }
-            )
+            parentActivity().viewModel.sendReceiveRouteToEdit = smtpCredentialTemplate?.let {
+                SendReceiveRoute(suggestSendReceiveRouteLabel(requireContext()), "", it)
+            }
             findNavController().navigate(
                 R.id.action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog
             )
@@ -87,3 +87,5 @@ private fun AddAccountSettingsWizardFragment.MailItem(
         Text(text)
     }
 }
+
+

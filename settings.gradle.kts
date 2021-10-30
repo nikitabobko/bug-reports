@@ -1,6 +1,7 @@
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        // https://maven.google.com/web/index.html
         google()
         mavenCentral()
         maven {
