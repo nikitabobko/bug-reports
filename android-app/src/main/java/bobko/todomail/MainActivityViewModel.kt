@@ -10,12 +10,15 @@ import bobko.todomail.util.mutableLiveDataOf
 import bobko.todomail.util.readPref
 import bobko.todomail.util.writePref
 
+/**
+ * Test: [bobko.todomail.MainActivityViewModelTest]
+ */
 class MainActivityViewModel(application: Application) : AndroidViewModel(application) {
     val todoTextDraft = mutableLiveDataOf(TextFieldValue())
 
     init {
         application.readPref { PrefManager.todoDraft.value }.takeIf { it.isNotBlank() }?.let {
-            prefillSharedText(it, null, useRawText = true)
+            todoTextDraft.value = TextFieldValue(it)
         }
     }
 
@@ -40,8 +43,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         useRawText: Boolean = false
     ) {
         require(sharedText.isNotBlank())
-        if (todoTextDraft.value.text.isEmpty() &&
-            !isPrefilledWithSharedText /* Allow to prefill TextField only once */) {
+        if (!isPrefilledWithSharedText /* Allow to prefill TextField only once */) {
             isPrefilledWithSharedText = true
             todoTextDraft.value =
                 if (useRawText) TextFieldValue(sharedText)
