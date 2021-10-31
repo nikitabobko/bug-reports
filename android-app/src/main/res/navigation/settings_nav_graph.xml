@@ -29,7 +29,7 @@
 
     <fragment
             android:id="@+id/editSendReceiveRouteSettingsFragment"
-            android:name="bobko.todomail.settings.EditSendReceiveRouteSettingsFragment"
+            android:name="bobko.todomail.settings.sendreceiveroute.EditSendReceiveRouteSettingsFragment"
             android:label="EditSendReceiveRouteSettingsFragment" />
     <dialog
             android:id="@+id/addAccountSettingsWizardFragment"

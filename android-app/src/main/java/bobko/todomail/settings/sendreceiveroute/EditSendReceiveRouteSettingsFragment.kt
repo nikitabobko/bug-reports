@@ -1,4 +1,4 @@
-package bobko.todomail.settings
+package bobko.todomail.settings.sendreceiveroute
 
 import android.content.Context
 import android.os.Bundle
@@ -35,6 +35,7 @@ import bobko.todomail.R
 import bobko.todomail.model.SendReceiveRoute
 import bobko.todomail.model.SmtpCredential
 import bobko.todomail.model.pref.PrefManager
+import bobko.todomail.settings.*
 import bobko.todomail.util.*
 import kotlin.reflect.KClass
 
@@ -351,6 +352,7 @@ private sealed class Item {
             sendReceiveRoute: MutableState<SendReceiveRoute>,
             viewModel: EditSendReceiveRouteSettingsFragmentViewModel
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
             bobko.todomail.settings.TextDivider(text = text)
         }
     }
