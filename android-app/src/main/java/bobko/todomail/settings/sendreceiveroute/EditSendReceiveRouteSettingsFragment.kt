@@ -70,6 +70,7 @@ private fun EditSendReceiveRouteSettingsFragment.EditSendReceiveRouteSettingsFra
 
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(viewModel.schema, sendReceiveRoute, mode)
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

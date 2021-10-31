@@ -1,11 +1,14 @@
 package bobko.todomail.settings.sendreceiveroute
 
+import android.widget.CheckBox
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -122,13 +125,13 @@ fun getSchema(existingLabels: Set<String>) = listOf(
                 ?.suggestEmailSuffix
                 ?.invoke(sendReceiveRoute.label)
                 ?.let { suggestedEmailSuffix ->
-                    OutlinedButton(onClick = { /*TODO*/ }) {
+                    OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier.height(56.dp)) {
                         Text(suggestedEmailSuffix)
                     }
                 }
         },
         isRightSideHintVisible = { sendReceiveRoute ->
-            !sendReceiveRoute.sendTo.contains("@") &&
+            sendReceiveRoute.sendTo.run { isNotBlank() && !contains("@") } &&
                     knownSmtpCredentials.findBySmtpServer(sendReceiveRoute.credential.smtpServer) != null
         },
     ),
@@ -211,11 +214,11 @@ sealed class Item {
                     },
                 )
                 AnimatedVisibility(visible = isRightSideHintVisible(sendReceiveRoute.value)) {
-                    Column {
-                        // OutlinedTextField has small label at top which makes centering a bit offseted to the bottom
-                        Spacer(modifier = Modifier.size(8.dp))
-                        CenteredRow {
-                            Spacer(modifier = Modifier.width(16.dp))
+                    CenteredRow {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            // OutlinedTextField has small label at top which makes centering a bit offseted to the bottom
+                            Spacer(modifier = Modifier.size(8.dp))
                             rightSideHint(sendReceiveRoute.value)
                         }
                     }
