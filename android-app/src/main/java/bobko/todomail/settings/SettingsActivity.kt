@@ -72,5 +72,5 @@ fun List<SmtpCredentialWithMetaInfo>.findBySmtpServer(smtpServer: String): SmtpC
     singleOrNull { it.smtpCredential.smtpServer == smtpServer }
 
 class SettingsActivityViewModel : ViewModel() {
-    var sendReceiveRouteToEdit: SendReceiveRoute? = SendReceiveRoute("", "", knownSmtpCredentials.first().smtpCredential) // TODO return to null
+    var sendReceiveRouteToEdit: SendReceiveRoute? = SendReceiveRoute("", "", KnownSmtpCredential.values().first().smtpCredential) // TODO return to null
 }
