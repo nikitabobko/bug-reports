@@ -2,14 +2,12 @@ package bobko.todomail.settings.sendreceiveroute
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -84,6 +82,9 @@ sealed class TextFieldItem<T : Any>(
     protected open fun RightSideHint(sendReceiveRoute: SendReceiveRoute) {
     }
 
+    protected open val textFieldVisualTransformation: State<VisualTransformation> =
+        mutableStateOf(VisualTransformation.None)
+
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
     @Composable
     override fun Composable(
@@ -111,10 +112,8 @@ sealed class TextFieldItem<T : Any>(
                     keyboardType = keyboardType,
                     imeAction = if (index == viewModel.schema.lastIndex) ImeAction.Done else ImeAction.Next
                 ),
-                visualTransformation = run { // TODO IDE hadn't completed this parameter :( Need to fix in Kotlin plugin
-                    if (keyboardType == KeyboardType.Password) PasswordVisualTransformation()
-                    else VisualTransformation.None
-                },
+                // TODO IDE hadn't completed this parameter :( Need to fix in Kotlin plugin
+                visualTransformation = textFieldVisualTransformation.value,
                 keyboardActions = KeyboardActions(
                     onNext = {
                         generateSequence(index + 1) { it + 1 }
@@ -231,6 +230,37 @@ class PasswordTextFieldItem() : TextFieldItem<String>(
     KeyboardType.Password,
 ) {
     override fun isRightSideHintVisible(sendReceiveRoute: SendReceiveRoute) = true
+
+    override val textFieldVisualTransformation: MutableState<VisualTransformation> =
+        mutableStateOf(PasswordVisualTransformation())
+
+    @OptIn(ExperimentalMaterialApi::class)
+    @Composable
+    override fun Composable(
+        sendReceiveRoute: MutableState<SendReceiveRoute>,
+        viewModel: EditSendReceiveRouteSettingsFragmentViewModel
+    ) {
+        Column {
+            super.Composable(sendReceiveRoute, viewModel)
+            Spacer(modifier = Modifier.height(8.dp))
+            val onClick = {
+                textFieldVisualTransformation.value =
+                    if (textFieldVisualTransformation.value is PasswordVisualTransformation) VisualTransformation.None
+                    else PasswordVisualTransformation()
+            }
+            CenteredRow(modifier = Modifier.padding(start = 16.dp)) {
+                Checkbox(
+                    checked = textFieldVisualTransformation.value is PasswordVisualTransformation,
+                    onCheckedChange = { onClick() }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Show password",
+                    modifier = Modifier.clickable(onClick = onClick)
+                )
+            }
+        }
+    }
 
     @Composable
     override fun RightSideHint(sendReceiveRoute: SendReceiveRoute) {
