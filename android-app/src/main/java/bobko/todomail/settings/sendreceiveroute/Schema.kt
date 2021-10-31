@@ -35,6 +35,7 @@ fun getSchema(existingLabels: Set<String>) = listOf(
     Item.TextField(
         "Label",
         SRR::label.lens,
+        String::class,
         errorProvider = { if (it in existingLabels) "Label '$it' already exist" else null }
     ),
 
@@ -42,6 +43,7 @@ fun getSchema(existingLabels: Set<String>) = listOf(
     Item.TextField(
         "SMTP Server",
         SRR::credential.then { ::smtpServer },
+        String::class,
         rightSideHint = { sendReceiveRoute ->
             knownSmtpCredentials.findBySmtpServer(sendReceiveRoute.credential.smtpServer)?.Icon()
         },
@@ -63,8 +65,8 @@ fun getSchema(existingLabels: Set<String>) = listOf(
     Item.TextField(
         "SMTP Server Port",
         SRR::credential.then { ::smtpServerPort },
-        KeyboardType.Number,
         Int::class,
+        KeyboardType.Number,
         errorProvider = {
             val port = it.toIntOrNull() ?: 0
             when {
@@ -90,10 +92,11 @@ fun getSchema(existingLabels: Set<String>) = listOf(
                 ?.let { srr.credential.smtpServerPort == it.smtpCredential.smtpServerPort } == true
         },
     ),
-    Item.TextField("Username", SRR::credential.then { ::username }, KeyboardType.Email),
+    Item.TextField("Username", SRR::credential.then { ::username }, String::class, KeyboardType.Email),
     Item.TextField(
         "Password",
         SRR::credential.then { ::password },
+        String::class,
         KeyboardType.Password,
         rightSideHint = {
             IconButton(onClick = { /*TODO*/ }, modifier = Modifier.size(emailIconSize)) {
@@ -112,6 +115,7 @@ fun getSchema(existingLabels: Set<String>) = listOf(
     Item.TextField(
         "Send to",
         SRR::sendTo.lens,
+        String::class,
         KeyboardType.Email,
         rightSideHint = { sendReceiveRoute ->
             knownSmtpCredentials.findBySmtpServer(sendReceiveRoute.credential.smtpServer)
@@ -134,8 +138,8 @@ sealed class Item {
     class TextField<T : Any>(
         val label: String,
         private val lens: Lens<SendReceiveRoute, T>,
+        private val clazz: KClass<T>,
         private val keyboardType: KeyboardType = KeyboardType.Text,
-        private val clazz: KClass<T> = String::class as KClass<T>,
         var focusRequester: FocusRequester? = null,
         var wasTextChangedManuallyAtLeastOnce: Boolean = false,
         val errorProvider: (currentText: String) -> String? = { null },
@@ -157,7 +161,7 @@ sealed class Item {
             sendReceiveRoute: MutableState<SendReceiveRoute>,
             viewModel: EditSendReceiveRouteSettingsFragmentViewModel
         ) {
-            val index = viewModel.schema.indexOf(this)
+            val index = viewModel.schema.indexOf(this).also { check(it != -1) }
             val focusRequester = remember { FocusRequester() }
             this.focusRequester = focusRequester
             val keyboard = LocalSoftwareKeyboardController.current
@@ -193,6 +197,7 @@ sealed class Item {
                         }
                     ),
                     onValueChange = { newValueRaw ->
+                        wasTextChangedManuallyAtLeastOnce = true
                         val newValue = when (clazz) {
                             // FYI https://issuetracker.google.com/issues/204522152
                             Int::class -> if (newValueRaw.isEmpty()) -1 else newValueRaw.toIntOrNull()
