@@ -1,6 +1,5 @@
 package bobko.todomail.settings
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
@@ -15,7 +14,6 @@ import androidx.lifecycle.ViewModel
 import bobko.todomail.R
 import bobko.todomail.model.SendReceiveRoute
 import bobko.todomail.model.SmtpCredential
-import bobko.todomail.model.pref.PrefManager
 
 class SettingsActivity : AppCompatActivity() {
     val viewModel: SettingsActivityViewModel by viewModels()
@@ -26,13 +24,35 @@ class SettingsActivity : AppCompatActivity() {
     }
 }
 
-data class SmtpCredentialWithMetaInfo(
+enum class KnownSmtpCredential(
     val label: String,
     @DrawableRes val iconResId: Int,
     val smtpCredential: SmtpCredential,
     val domain: String,
-    val suggestEmailSuffix: (currentLabel: String) -> String = { "@$domain" },
 ) {
+    Gmail(
+        "Gmail (SMTP)",
+        R.drawable.ic_gmail_icon,
+        SmtpCredential("smtp.gmail.com", 587, username = "", password = ""),
+        domain = "gmail.com"
+    ) {
+        override fun suggestEmailSuffix(currentLabel: String): String {
+            return "+${currentLabel.lowercase()}@gmail.com"
+        }
+    },
+    Outlook(
+        "Outlook (SMTP)",
+        R.drawable.outlook_icon,
+        SmtpCredential("smtp-mail.outlook.com", 587, username = "", password = ""),
+        domain = "outlook.com",
+    ),
+    Yahoo(
+        "Yahoo Mail (SMTP)",
+        R.drawable.yahoo_mail,
+        SmtpCredential("smtp.mail.yahoo.com", 465, username = "", password = ""),
+        domain = "yahoo.com",
+    );
+
     @Composable
     fun Icon() {
         androidx.compose.material.Icon(
@@ -42,35 +62,18 @@ data class SmtpCredentialWithMetaInfo(
             tint = Color.Unspecified
         )
     }
+
+    open fun suggestEmailSuffix(currentLabel: String) = "@$domain"
+
+    companion object {
+        fun findBySmtpServer(route: SendReceiveRoute): KnownSmtpCredential? =
+            values().singleOrNull { it.smtpCredential.smtpServer == route.credential.smtpServer }
+    }
 }
 
 val emailIconSize = 32.dp
 
-val knownSmtpCredentials = listOf(
-    SmtpCredentialWithMetaInfo(
-        "Gmail (SMTP)",
-        R.drawable.ic_gmail_icon,
-        SmtpCredential("smtp.gmail.com", 587, username = "", password = ""),
-        domain = "gmail.com",
-        suggestEmailSuffix = { currentText -> "+${currentText.lowercase()}@gmail.com" },
-    ),
-    SmtpCredentialWithMetaInfo(
-        "Outlook (SMTP)",
-        R.drawable.outlook_icon,
-        SmtpCredential("smtp-mail.outlook.com", 587, username = "", password = ""),
-        domain = "outlook.com",
-    ),
-    SmtpCredentialWithMetaInfo(
-        "Yahoo Mail (SMTP)",
-        R.drawable.yahoo_mail,
-        SmtpCredential("smtp.mail.yahoo.com", 465, username = "", password = ""),
-        domain = "yahoo.com",
-    ),
-)
-
-fun List<SmtpCredentialWithMetaInfo>.findBySmtpServer(smtpServer: String): SmtpCredentialWithMetaInfo? =
-    singleOrNull { it.smtpCredential.smtpServer == smtpServer }
-
 class SettingsActivityViewModel : ViewModel() {
-    var sendReceiveRouteToEdit: SendReceiveRoute? = SendReceiveRoute("", "", KnownSmtpCredential.values().first().smtpCredential) // TODO return to null
+    var sendReceiveRouteToEdit: SendReceiveRoute? =
+        SendReceiveRoute("", "", KnownSmtpCredential.values().first().smtpCredential) // TODO return to null
 }

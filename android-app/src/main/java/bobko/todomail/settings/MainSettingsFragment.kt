@@ -96,8 +96,8 @@ private fun MainSettingsFragment.AccountsSection(
         val offsetUpperBound = (accounts.lastIndex - currentIdx) * itemHeight
         ListItem(
             icon = {
-                val knownCredential = knownSmtpCredentials.singleOrNull {
-                    it.domain == sendReceiveRoute.sendTo
+                val knownCredential = KnownSmtpCredential.values().singleOrNull {
+                    sendReceiveRoute.sendTo.endsWith(it.domain)
                 }
                 if (knownCredential != null) {
                     knownCredential.Icon()

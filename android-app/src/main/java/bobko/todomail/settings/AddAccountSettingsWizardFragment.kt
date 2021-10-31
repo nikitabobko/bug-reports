@@ -38,7 +38,7 @@ fun AddAccountSettingsWizardFragment.AddAccountSettingsWizardFragmentScreen() {
     EmailTodoTheme {
         Surface {
             Column {
-                knownSmtpCredentials.forEach {
+                KnownSmtpCredential.values().forEach {
                     MailItem(
                         icon = { it.Icon() },
                         text = it.label,

@@ -1,14 +1,11 @@
 package bobko.todomail.settings.sendreceiveroute
 
-import android.widget.CheckBox
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -26,18 +23,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import bobko.todomail.R
 import bobko.todomail.model.SendReceiveRoute
+import bobko.todomail.settings.KnownSmtpCredential
 import bobko.todomail.settings.emailIconSize
-import bobko.todomail.settings.findBySmtpServer
-import bobko.todomail.settings.knownSmtpCredentials
 import bobko.todomail.util.*
 import kotlin.reflect.KClass
-
-private typealias SRR = SendReceiveRoute
 
 fun getSchema(existingLabels: Set<String>) = listOf(
     Item.TextField(
         "Label",
-        SRR::label.lens,
+        SendReceiveRoute::label.lens,
         String::class,
         errorProvider = { if (it in existingLabels) "Label '$it' already exist" else null }
     ),
@@ -45,18 +39,18 @@ fun getSchema(existingLabels: Set<String>) = listOf(
     Item.TextDivider("Credentials settings"),
     Item.TextField(
         "SMTP Server",
-        SRR::credential.then { ::smtpServer },
+        SendReceiveRoute::credential.then { ::smtpServer },
         String::class,
         rightSideHint = { sendReceiveRoute ->
-            knownSmtpCredentials.findBySmtpServer(sendReceiveRoute.credential.smtpServer)?.Icon()
+            KnownSmtpCredential.findBySmtpServer(sendReceiveRoute)?.Icon()
         },
         isRightSideHintVisible = { sendReceiveRoute ->
-            knownSmtpCredentials.findBySmtpServer(sendReceiveRoute.credential.smtpServer) != null
+            KnownSmtpCredential.findBySmtpServer(sendReceiveRoute) != null
         },
         onChanged = { route ->
-            val smtpServerPortLens = SRR::credential.then { ::smtpServerPort }
+            val smtpServerPortLens = SendReceiveRoute::credential.then { ::smtpServerPort }
             if (smtpServerPortLens.get(route.value) == DEFAULT_SMTP_PORT) {
-                knownSmtpCredentials.findBySmtpServer(route.value.credential.smtpServer)
+                KnownSmtpCredential.findBySmtpServer(route.value)
                     ?.smtpCredential
                     ?.smtpServerPort
                     ?.let {
@@ -67,7 +61,7 @@ fun getSchema(existingLabels: Set<String>) = listOf(
     ),
     Item.TextField(
         "SMTP Server Port",
-        SRR::credential.then { ::smtpServerPort },
+        SendReceiveRoute::credential.then { ::smtpServerPort },
         Int::class,
         KeyboardType.Number,
         errorProvider = {
@@ -79,7 +73,7 @@ fun getSchema(existingLabels: Set<String>) = listOf(
             }
         },
         rightSideHint = { srr ->
-            knownSmtpCredentials.findBySmtpServer(srr.credential.smtpServer)
+            KnownSmtpCredential.findBySmtpServer(srr)
                 ?.takeIf { srr.credential.smtpServerPort == it.smtpCredential.smtpServerPort }
                 ?.let {
                     Icon(
@@ -91,14 +85,14 @@ fun getSchema(existingLabels: Set<String>) = listOf(
                 }
         },
         isRightSideHintVisible = { srr ->
-            knownSmtpCredentials.findBySmtpServer(srr.credential.smtpServer)
+            KnownSmtpCredential.findBySmtpServer(srr)
                 ?.let { srr.credential.smtpServerPort == it.smtpCredential.smtpServerPort } == true
         },
     ),
-    Item.TextField("Username", SRR::credential.then { ::username }, String::class, KeyboardType.Email),
+    Item.TextField("Username", SendReceiveRoute::credential.then { ::username }, String::class, KeyboardType.Email),
     Item.TextField(
         "Password",
-        SRR::credential.then { ::password },
+        SendReceiveRoute::credential.then { ::password },
         String::class,
         KeyboardType.Password,
         rightSideHint = {
@@ -117,13 +111,12 @@ fun getSchema(existingLabels: Set<String>) = listOf(
     Item.TextDivider("Destination address settings"),
     Item.TextField(
         "Send to",
-        SRR::sendTo.lens,
+        SendReceiveRoute::sendTo.lens,
         String::class,
         KeyboardType.Email,
         rightSideHint = { sendReceiveRoute ->
-            knownSmtpCredentials.findBySmtpServer(sendReceiveRoute.credential.smtpServer)
-                ?.suggestEmailSuffix
-                ?.invoke(sendReceiveRoute.label)
+            KnownSmtpCredential.findBySmtpServer(sendReceiveRoute)
+                ?.suggestEmailSuffix(sendReceiveRoute.label)
                 ?.let { suggestedEmailSuffix ->
                     OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier.height(56.dp)) {
                         Text(suggestedEmailSuffix)
@@ -132,7 +125,7 @@ fun getSchema(existingLabels: Set<String>) = listOf(
         },
         isRightSideHintVisible = { sendReceiveRoute ->
             sendReceiveRoute.sendTo.run { isNotBlank() && !contains("@") } &&
-                    knownSmtpCredentials.findBySmtpServer(sendReceiveRoute.credential.smtpServer) != null
+                    KnownSmtpCredential.findBySmtpServer(sendReceiveRoute) != null
         },
     ),
 )
