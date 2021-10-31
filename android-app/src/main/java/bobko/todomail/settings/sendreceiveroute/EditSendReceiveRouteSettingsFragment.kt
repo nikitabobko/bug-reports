@@ -99,7 +99,7 @@ private fun EditSendReceiveRouteSettingsFragment.Buttons(
         Button(
             modifier = Modifier.weight(1f),
             onClick = {
-                if (schema.filterIsInstance<Item.TextField<*>>().any { item ->
+                if (schema.filterIsInstance<TextFieldItem<*>>().any { item ->
                         item.getCurrentText(sendReceiveRoute.value).let { it.isBlank() || item.errorProvider(it) != null }
                     }
                 ) {
