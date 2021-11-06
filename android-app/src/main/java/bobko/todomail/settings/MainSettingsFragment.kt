@@ -80,7 +80,10 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveDat
     }
 }
 
-private fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
+/**
+ * Test - [bobko.todomail.util.CalculateIndexOffsetTest]
+ */
+fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
     (pixelOffset / (itemHeight / 2)).let { it / 2 + it % 2 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -149,16 +152,9 @@ private fun MainSettingsFragment.AccountsSection(
                                 itemHeight
                             )
 
-                            val newAccounts = when {
-                                currentIdx < newIdx -> accounts.subList(0, currentIdx) +
-                                        accounts.subList(currentIdx + 1, newIdx + 1) +
-                                        listOf(sendReceiveRoute) +
-                                        accounts.subList(newIdx + 1, accounts.size)
-                                newIdx < currentIdx -> accounts.subList(0, newIdx) +
-                                        listOf(sendReceiveRoute) +
-                                        accounts.subList(newIdx, currentIdx) +
-                                        accounts.subList(currentIdx + 1, accounts.size)
-                                else -> accounts
+                            val newAccounts = accounts.toMutableList().apply {
+                                removeAt(currentIdx)
+                                add(newIdx, sendReceiveRoute)
                             }
 
                             offsets = List(accounts.size) { 0 }
