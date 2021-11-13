@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.getSystemService
 import bobko.todomail.model.pref.LastUsedAppFeatureManager
-import bobko.todomail.model.SendReceiveRoute
+import bobko.todomail.model.EmailTemplate
 import bobko.todomail.model.StartedFrom
 import bobko.todomail.model.pref.PrefManager
 import bobko.todomail.settings.SettingsActivity
@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
             }
 
 
-        val routes = PrefManager.readSendReceiveRoutes(this@MainActivity)
+        val routes = PrefManager.readEmailTemplates(this@MainActivity)
         if (routes.value.count() == 0) {
             finish()
             startActivity(Intent(this, SettingsActivity::class.java)) // TODO should be deeplink?
@@ -124,7 +124,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<SendReceiveRoute>>) {
+fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<EmailTemplate>>) {
     EmailTodoTheme {
         Column {
             // Transparent Surface for keeping space for Android context menu
@@ -154,7 +154,7 @@ fun MainActivity.MainActivityScreen(accountsLive: InitializedLiveData<List<SendR
 }
 
 @Composable
-private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<List<SendReceiveRoute>>) {
+private fun MainActivity.TextFieldAndButtons(accountsLive: InitializedLiveData<List<EmailTemplate>>) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -205,7 +205,7 @@ private fun MainActivity.Buttons(
     todoTextDraft: MutableState<TextFieldValue>,
     isError: MutableState<Boolean>,
     sendInProgress: MutableState<Boolean>,
-    accountsLive: InitializedLiveData<List<SendReceiveRoute>>
+    accountsLive: InitializedLiveData<List<EmailTemplate>>
 ) {
     val canStartSending = !sendInProgress.value && todoTextDraft.value.text.isNotBlank()
     val unspecifiedOrErrorColor =
@@ -227,7 +227,7 @@ private fun MainActivity.Buttons(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        val onClick = { sendReceiveRoute: SendReceiveRoute ->
+        val onClick = { emailTemplate: EmailTemplate ->
             scope.launch {
                 val prevText = todoTextDraft.value.text
                 sendInProgress.value = true
@@ -235,7 +235,7 @@ private fun MainActivity.Buttons(
                 try {
                     withContext(Dispatchers.IO) {
                         EmailManager.sendEmailToMyself(
-                            sendReceiveRoute,
+                            emailTemplate,
                             prevText.lineSequence().first(),
                             prevText.lineSequence().drop(1).joinToString("\n").trim()
                         )

@@ -12,8 +12,8 @@
                 android:id="@+id/action_mainSettingsFragment_to_addAccountSettingsWizardFragment"
                 app:destination="@id/addAccountSettingsWizardFragment" />
         <action
-                android:id="@+id/action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment"
-                app:destination="@id/editSendReceiveRouteSettingsFragment"
+                android:id="@+id/action_mainSettingsFragment_to_editEmailTemplateSettingsFragment"
+                app:destination="@id/editEmailTemplateSettingsFragment"
                 app:enterAnim="@anim/nav_default_enter_anim"
                 app:exitAnim="@anim/nav_default_exit_anim"
                 app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -28,16 +28,16 @@
     </fragment>
 
     <fragment
-            android:id="@+id/editSendReceiveRouteSettingsFragment"
-            android:name="bobko.todomail.settings.sendreceiveroute.EditSendReceiveRouteSettingsFragment"
-            android:label="EditSendReceiveRouteSettingsFragment" />
+            android:id="@+id/editEmailTemplateSettingsFragment"
+            android:name="bobko.todomail.settings.emailtemplate.EditEmailTemplateSettingsFragment"
+            android:label="EditEmailTemplateSettingsFragment" />
     <dialog
             android:id="@+id/addAccountSettingsWizardFragment"
             android:name="bobko.todomail.settings.AddAccountSettingsWizardFragment"
             android:label="AddAccountSettingsWizardFragment">
         <action
                 android:id="@+id/action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog"
-                app:destination="@id/editSendReceiveRouteSettingsFragment"
+                app:destination="@id/editEmailTemplateSettingsFragment"
                 app:popUpTo="@id/mainSettingsFragment" />
     </dialog>
     <fragment

@@ -12,7 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import bobko.todomail.R
-import bobko.todomail.model.SendReceiveRoute
+import bobko.todomail.model.EmailTemplate
 import bobko.todomail.model.SmtpCredential
 
 class SettingsActivity : AppCompatActivity() {
@@ -66,7 +66,7 @@ enum class KnownSmtpCredential(
     open fun suggestEmailSuffix(currentLabel: String) = "@$domain"
 
     companion object {
-        fun findBySmtpServer(route: SendReceiveRoute): KnownSmtpCredential? =
+        fun findBySmtpServer(route: EmailTemplate): KnownSmtpCredential? =
             values().singleOrNull { it.smtpCredential.smtpServer == route.credential.smtpServer }
     }
 }
@@ -74,5 +74,5 @@ enum class KnownSmtpCredential(
 val emailIconSize = 32.dp
 
 class SettingsActivityViewModel : ViewModel() {
-    var sendReceiveRouteToEdit: SendReceiveRoute? = null
+    var emailTemplateToEdit: EmailTemplate? = null
 }

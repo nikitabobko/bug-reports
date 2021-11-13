@@ -23,19 +23,16 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import bobko.todomail.R
 import bobko.todomail.model.StartedFrom
-import bobko.todomail.model.SendReceiveRoute
+import bobko.todomail.model.EmailTemplate
 import bobko.todomail.model.pref.PrefManager
-import bobko.todomail.util.InitializedLiveData
-import bobko.todomail.util.composeView
-import bobko.todomail.util.observeAsState
-import bobko.todomail.util.sign
+import bobko.todomail.util.*
 
 class MainSettingsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (PrefManager.readSendReceiveRoutes(requireContext()).value.count() == 0) {
+        if (PrefManager.readEmailTemplates(requireContext()).value.count() == 0) {
             findNavController().navigate(
-                R.id.action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment
+                R.id.action_mainSettingsFragment_to_editEmailTemplateSettingsFragment
             )
         }
     }
@@ -45,19 +42,19 @@ class MainSettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = requireContext().composeView {
-        MainSettingsActivityScreen(PrefManager.readSendReceiveRoutes(requireContext()))
+        MainSettingsActivityScreen(PrefManager.readEmailTemplates(requireContext()))
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveData<List<SendReceiveRoute>>) {
+fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveData<List<EmailTemplate>>) {
     SettingsScreen("Todomail Settings", rootSettingsScreen = true) {
-        TextDivider("Accounts")
-        AccountsSection(accounts)
+        TextDivider("Templates")
+        TemplatesSection(accounts)
 
         Divider()
-        TextDivider("Close the dialog after send when the app is")
+        TextDivider("Close the dialog after send when the app is") // TODO remove this setting
         WhenTheAppIsStartedFromSection(
             listOf(StartedFrom.Launcher, StartedFrom.Tile, StartedFrom.Sharesheet)
                 .map { it to it.closeAfterSendPrefKey }
@@ -74,33 +71,35 @@ fun MainSettingsFragment.MainSettingsActivityScreen(accounts: InitializedLiveDat
             Text("Text prefill settings")
         }
 
-        OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)) {
             Text("Reset settings to default")
         }
     }
 }
 
 /**
- * Test - [bobko.todomail.util.CalculateIndexOffsetTest]
+ * Test - [bobko.todomail.settings.CalculateIndexOffsetTest]
  */
 fun calculateIndexOffset(pixelOffset: Int, itemHeight: Int) =
     (pixelOffset / (itemHeight / 2)).let { it / 2 + it % 2 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun MainSettingsFragment.AccountsSection(
-    accountsLiveData: InitializedLiveData<List<SendReceiveRoute>>
+private fun MainSettingsFragment.TemplatesSection(
+    accountsLiveData: InitializedLiveData<List<EmailTemplate>>
 ) {
     val accounts by accountsLiveData.observeAsState()
     var offsets by remember(accounts.size) { mutableStateOf(List(accounts.size) { 0 }) }
     var itemHeight by remember { mutableStateOf(0) }
-    accounts.forEachIndexed { currentIdx, sendReceiveRoute ->
+    accounts.forEachIndexed { currentIdx, emailTemplate ->
         val offsetLowerBound = -currentIdx * itemHeight
         val offsetUpperBound = (accounts.lastIndex - currentIdx) * itemHeight
         ListItem(
             icon = {
                 val knownCredential = KnownSmtpCredential.values().singleOrNull {
-                    sendReceiveRoute.sendTo.endsWith(it.domain)
+                    emailTemplate.sendTo.endsWith(it.domain)
                 }
                 if (knownCredential != null) {
                     knownCredential.Icon()
@@ -116,7 +115,7 @@ private fun MainSettingsFragment.AccountsSection(
                 .offset(y = with(LocalDensity.current) { offsets[currentIdx].toDp() })
                 .clickable {
                     findNavController().navigate(
-                        R.id.action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment
+                        R.id.action_mainSettingsFragment_to_editEmailTemplateSettingsFragment
                     )
                 }
                 .onSizeChanged { if (currentIdx == 0 && itemHeight == 0) itemHeight = it.height },
@@ -154,19 +153,23 @@ private fun MainSettingsFragment.AccountsSection(
 
                             val newAccounts = accounts.toMutableList().apply {
                                 removeAt(currentIdx)
-                                add(newIdx, sendReceiveRoute)
+                                add(newIdx, emailTemplate)
                             }
 
                             offsets = List(accounts.size) { 0 }
-                            PrefManager.writeSendReceiveRoutes(requireContext(), newAccounts)
+                            PrefManager.writeEmailTemplates(requireContext(), newAccounts)
                         }
                     )
                 )
             },
             text = {
-                Column {
-                    Text(text = sendReceiveRoute.label)
-                    Text(text = sendReceiveRoute.sendTo)
+                Row {
+                    Text(text = emailTemplate.label)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(text = "From: " + emailTemplate.credential.username)
+                        Text(text = "To: " + emailTemplate.sendTo)
+                    }
                 }
             }
         )
@@ -181,9 +184,9 @@ private fun MainSettingsFragment.AccountsSection(
         },
         modifier = Modifier.clickable {
             findNavController().navigate(
-                R.id.action_mainSettingsFragment_to_editSendReceiveRouteSettingsFragment
+                R.id.action_mainSettingsFragment_to_editEmailTemplateSettingsFragment
             )
         },
-        text = { Text(text = "Add account") }
+        text = { Text(text = "Add template") }
     )
 }

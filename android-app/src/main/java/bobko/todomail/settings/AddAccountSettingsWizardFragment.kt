@@ -13,9 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.fragment.findNavController
 import bobko.todomail.R
-import bobko.todomail.model.SendReceiveRoute
+import bobko.todomail.model.EmailTemplate
 import bobko.todomail.model.SmtpCredential
-import bobko.todomail.settings.sendreceiveroute.suggestSendReceiveRouteLabel
+import bobko.todomail.settings.emailtemplate.suggestEmailTemplateLabel
 import bobko.todomail.theme.EmailTodoTheme
 import bobko.todomail.util.CenteredRow
 import bobko.todomail.util.composeView
@@ -76,8 +76,8 @@ private fun AddAccountSettingsWizardFragment.MailItem(
 ) {
     ListItem(
         modifier = Modifier.clickable {
-            parentActivity().viewModel.sendReceiveRouteToEdit = smtpCredentialTemplate?.let {
-                SendReceiveRoute(suggestSendReceiveRouteLabel(requireContext()), "", it)
+            parentActivity().viewModel.emailTemplateToEdit = smtpCredentialTemplate?.let {
+                EmailTemplate(suggestEmailTemplateLabel(requireContext()), "", it)
             }
             findNavController().navigate(
                 R.id.action_addAccountSettingsWizardFragment_to_addAccountSettingsFragmentDialog

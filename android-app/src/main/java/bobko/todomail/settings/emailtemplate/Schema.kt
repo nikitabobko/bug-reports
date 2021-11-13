@@ -1,4 +1,4 @@
-package bobko.todomail.settings.sendreceiveroute
+package bobko.todomail.settings.emailtemplate
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Info
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -21,10 +19,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import bobko.todomail.R
-import bobko.todomail.model.SendReceiveRoute
+import bobko.todomail.model.EmailTemplate
 import bobko.todomail.settings.KnownSmtpCredential
 import bobko.todomail.settings.emailIconSize
 import bobko.todomail.util.*
@@ -46,16 +42,16 @@ fun getSchema(existingLabels: Set<String>) = listOf(
 sealed class Item {
     @Composable
     abstract fun Composable(
-        sendReceiveRoute: MutableState<SendReceiveRoute>,
-        viewModel: EditSendReceiveRouteSettingsFragmentViewModel
+        emailTemplate: MutableState<EmailTemplate>,
+        viewModel: EditEmailTemplateSettingsFragmentViewModel
     )
 }
 
 class TextDivider(val text: String) : Item() {
     @Composable
     override fun Composable(
-        sendReceiveRoute: MutableState<SendReceiveRoute>,
-        viewModel: EditSendReceiveRouteSettingsFragmentViewModel
+        emailTemplate: MutableState<EmailTemplate>,
+        viewModel: EditEmailTemplateSettingsFragmentViewModel
     ) {
         Spacer(modifier = Modifier.height(8.dp))
         bobko.todomail.settings.TextDivider(text = text)
@@ -66,15 +62,15 @@ class TextDivider(val text: String) : Item() {
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
 private fun <T : Any> TextFieldItem<T>.TextFieldComposable(
-    sendReceiveRoute: MutableState<SendReceiveRoute>,
-    viewModel: EditSendReceiveRouteSettingsFragmentViewModel
+    emailTemplate: MutableState<EmailTemplate>,
+    viewModel: EditEmailTemplateSettingsFragmentViewModel
 ) {
     val index = viewModel.schema.indexOf(this).also { check(it != -1) }
     val focusRequester = remember { FocusRequester() }
     this.focusRequester = focusRequester
     val keyboard = LocalSoftwareKeyboardController.current
 
-    val currentText = getCurrentText(sendReceiveRoute.value)
+    val currentText = getCurrentText(emailTemplate.value)
     val showErrorIfFieldIsEmpty by viewModel.showErrorIfFieldIsEmpty.observeAsState()
     val error = errorProvider(currentText) ?: label.takeIf { showErrorIfFieldIsEmpty && currentText.isBlank() }
 
@@ -112,18 +108,18 @@ private fun <T : Any> TextFieldItem<T>.TextFieldComposable(
                     else -> error("")
                 } as? T?
                 newValue?.let {
-                    sendReceiveRoute.value = lens.set(sendReceiveRoute.value, it)
+                    emailTemplate.value = lens.set(emailTemplate.value, it)
                 }
-                onTextChanged(sendReceiveRoute)
+                onTextChanged(emailTemplate)
             },
         )
-        AnimatedVisibility(visible = isRightSideHintVisible(sendReceiveRoute.value)) {
+        AnimatedVisibility(visible = isRightSideHintVisible(emailTemplate.value)) {
             CenteredRow {
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     // OutlinedTextField has small label at top which makes centering a bit offseted to the bottom
                     Spacer(modifier = Modifier.size(8.dp))
-                    RightSideHint(sendReceiveRoute.value)
+                    RightSideHint(emailTemplate.value)
                 }
             }
         }
@@ -132,7 +128,7 @@ private fun <T : Any> TextFieldItem<T>.TextFieldComposable(
 
 sealed class TextFieldItem<T : Any>(
     val label: String,
-    val lens: Lens<SendReceiveRoute, T>,
+    val lens: Lens<EmailTemplate, T>,
     val clazz: KClass<T>,
     val keyboardType: KeyboardType = KeyboardType.Text,
     var focusRequester: FocusRequester? = null,
@@ -142,16 +138,16 @@ sealed class TextFieldItem<T : Any>(
         require(clazz == Int::class || clazz == String::class)
     }
 
-    fun getCurrentText(sendReceiveRoute: SendReceiveRoute): String {
-        return lens.get(sendReceiveRoute).takeIf { it != -1 }?.toString() ?: ""
+    fun getCurrentText(emailTemplate: EmailTemplate): String {
+        return lens.get(emailTemplate).takeIf { it != -1 }?.toString() ?: ""
     }
 
     open fun errorProvider(currentText: String): String? = null
-    open fun onTextChanged(sendReceiveRoute: MutableState<SendReceiveRoute>) {}
-    open fun isRightSideHintVisible(sendReceiveRoute: SendReceiveRoute) = false
+    open fun onTextChanged(emailTemplate: MutableState<EmailTemplate>) {}
+    open fun isRightSideHintVisible(emailTemplate: EmailTemplate) = false
 
     @Composable
-    open fun RightSideHint(sendReceiveRoute: SendReceiveRoute) {
+    open fun RightSideHint(emailTemplate: EmailTemplate) {
     }
 
     open val textFieldVisualTransformation: State<VisualTransformation> =
@@ -159,16 +155,16 @@ sealed class TextFieldItem<T : Any>(
 
     @Composable
     override fun Composable(
-        sendReceiveRoute: MutableState<SendReceiveRoute>,
-        viewModel: EditSendReceiveRouteSettingsFragmentViewModel
+        emailTemplate: MutableState<EmailTemplate>,
+        viewModel: EditEmailTemplateSettingsFragmentViewModel
     ) {
-        TextFieldComposable(sendReceiveRoute, viewModel)
+        TextFieldComposable(emailTemplate, viewModel)
     }
 }
 
 class LabelTextFieldItem(private val existingLabels: Set<String>) : TextFieldItem<String>(
     "Label",
-    SendReceiveRoute::label.lens,
+    EmailTemplate::label.lens,
     String::class
 ) {
     override fun errorProvider(currentText: String) =
@@ -177,34 +173,34 @@ class LabelTextFieldItem(private val existingLabels: Set<String>) : TextFieldIte
 
 class SmtpServerTextFieldItem() : TextFieldItem<String>(
     "SMTP Server",
-    SendReceiveRoute::credential.then { ::smtpServer },
+    EmailTemplate::credential.then { ::smtpServer },
     String::class,
 ) {
-    override fun onTextChanged(sendReceiveRoute: MutableState<SendReceiveRoute>) {
-        val smtpServerPortLens = SendReceiveRoute::credential.then { ::smtpServerPort }
-        if (smtpServerPortLens.get(sendReceiveRoute.value) == DEFAULT_SMTP_PORT) {
-            KnownSmtpCredential.findBySmtpServer(sendReceiveRoute.value)
+    override fun onTextChanged(emailTemplate: MutableState<EmailTemplate>) {
+        val smtpServerPortLens = EmailTemplate::credential.then { ::smtpServerPort }
+        if (smtpServerPortLens.get(emailTemplate.value) == DEFAULT_SMTP_PORT) {
+            KnownSmtpCredential.findBySmtpServer(emailTemplate.value)
                 ?.smtpCredential
                 ?.smtpServerPort
                 ?.let {
-                    sendReceiveRoute.value = smtpServerPortLens.set(sendReceiveRoute.value, it)
+                    emailTemplate.value = smtpServerPortLens.set(emailTemplate.value, it)
                 }
         }
     }
 
-    override fun isRightSideHintVisible(sendReceiveRoute: SendReceiveRoute) =
-        KnownSmtpCredential.findBySmtpServer(sendReceiveRoute) != null
+    override fun isRightSideHintVisible(emailTemplate: EmailTemplate) =
+        KnownSmtpCredential.findBySmtpServer(emailTemplate) != null
 
     // TODO report that Kotlin plugin doesn't complete @Composable method override
     @Composable
-    override fun RightSideHint(sendReceiveRoute: SendReceiveRoute) {
-        KnownSmtpCredential.findBySmtpServer(sendReceiveRoute)?.Icon()
+    override fun RightSideHint(emailTemplate: EmailTemplate) {
+        KnownSmtpCredential.findBySmtpServer(emailTemplate)?.Icon()
     }
 }
 
 class SmtpServerPortTextFieldItem() : TextFieldItem<Int>(
     "SMTP Server Port",
-    SendReceiveRoute::credential.then { ::smtpServerPort },
+    EmailTemplate::credential.then { ::smtpServerPort },
     Int::class,
     KeyboardType.Number,
 ) {
@@ -217,16 +213,16 @@ class SmtpServerPortTextFieldItem() : TextFieldItem<Int>(
         }
     }
 
-    private fun getKnownSmtpServerPortPair(sendReceiveRoute: SendReceiveRoute): KnownSmtpCredential? =
-        KnownSmtpCredential.findBySmtpServer(sendReceiveRoute)
-            ?.takeIf { sendReceiveRoute.credential.smtpServerPort == it.smtpCredential.smtpServerPort }
+    private fun getKnownSmtpServerPortPair(emailTemplate: EmailTemplate): KnownSmtpCredential? =
+        KnownSmtpCredential.findBySmtpServer(emailTemplate)
+            ?.takeIf { emailTemplate.credential.smtpServerPort == it.smtpCredential.smtpServerPort }
 
-    override fun isRightSideHintVisible(sendReceiveRoute: SendReceiveRoute) =
-        getKnownSmtpServerPortPair(sendReceiveRoute) != null
+    override fun isRightSideHintVisible(emailTemplate: EmailTemplate) =
+        getKnownSmtpServerPortPair(emailTemplate) != null
 
     @Composable
-    override fun RightSideHint(sendReceiveRoute: SendReceiveRoute) {
-        getKnownSmtpServerPortPair(sendReceiveRoute)?.let {
+    override fun RightSideHint(emailTemplate: EmailTemplate) {
+        getKnownSmtpServerPortPair(emailTemplate)?.let {
             Icon(
                 painterResource(id = R.drawable.verified_icon_24),
                 "",
@@ -239,7 +235,7 @@ class SmtpServerPortTextFieldItem() : TextFieldItem<Int>(
 
 class PasswordTextFieldItem() : TextFieldItem<String>(
     "Password",
-    SendReceiveRoute::credential.then { ::password },
+    EmailTemplate::credential.then { ::password },
     String::class,
     KeyboardType.Password,
 ) {
@@ -248,11 +244,11 @@ class PasswordTextFieldItem() : TextFieldItem<String>(
 
     @Composable
     override fun Composable(
-        sendReceiveRoute: MutableState<SendReceiveRoute>,
-        viewModel: EditSendReceiveRouteSettingsFragmentViewModel
+        emailTemplate: MutableState<EmailTemplate>,
+        viewModel: EditEmailTemplateSettingsFragmentViewModel
     ) {
         Column {
-            TextFieldComposable(sendReceiveRoute, viewModel)
+            TextFieldComposable(emailTemplate, viewModel)
             Spacer(modifier = Modifier.height(8.dp))
             val onClick = {
                 textFieldVisualTransformation.value =
@@ -276,25 +272,25 @@ class PasswordTextFieldItem() : TextFieldItem<String>(
 
 class UsernameTextFieldItem() : TextFieldItem<String>(
     "Username",
-    SendReceiveRoute::credential.then { ::username },
+    EmailTemplate::credential.then { ::username },
     String::class,
     KeyboardType.Email
 )
 
 class SendToTextFieldItem() : TextFieldItem<String>(
     "Send to",
-    SendReceiveRoute::sendTo.lens,
+    EmailTemplate::sendTo.lens,
     String::class,
     KeyboardType.Email,
 ) {
-    override fun isRightSideHintVisible(sendReceiveRoute: SendReceiveRoute) =
-        sendReceiveRoute.sendTo.run { isNotBlank() && !contains("@") } &&
-                KnownSmtpCredential.findBySmtpServer(sendReceiveRoute) != null
+    override fun isRightSideHintVisible(emailTemplate: EmailTemplate) =
+        emailTemplate.sendTo.run { isNotBlank() && !contains("@") } &&
+                KnownSmtpCredential.findBySmtpServer(emailTemplate) != null
 
     @Composable
-    override fun RightSideHint(sendReceiveRoute: SendReceiveRoute) {
-        KnownSmtpCredential.findBySmtpServer(sendReceiveRoute)
-            ?.suggestEmailSuffix(sendReceiveRoute.label)
+    override fun RightSideHint(emailTemplate: EmailTemplate) {
+        KnownSmtpCredential.findBySmtpServer(emailTemplate)
+            ?.suggestEmailSuffix(emailTemplate.label)
             ?.let { suggestedEmailSuffix ->
                 OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier.height(56.dp)) {
                     Text(suggestedEmailSuffix)

@@ -1,4 +1,4 @@
-package bobko.todomail.settings.sendreceiveroute
+package bobko.todomail.settings.emailtemplate
 
 import android.app.Application
 import android.content.Context
@@ -24,7 +24,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
-import bobko.todomail.model.SendReceiveRoute
+import bobko.todomail.model.EmailTemplate
 import bobko.todomail.model.SmtpCredential
 import bobko.todomail.model.pref.PrefManager
 import bobko.todomail.settings.SettingsActivity
@@ -36,8 +36,8 @@ import bobko.todomail.util.observeAsMutableState
 
 const val DEFAULT_SMTP_PORT = 25
 
-class EditSendReceiveRouteSettingsFragment : Fragment() {
-    val viewModel by viewModels<EditSendReceiveRouteSettingsFragmentViewModel>()
+class EditEmailTemplateSettingsFragment : Fragment() {
+    val viewModel by viewModels<EditEmailTemplateSettingsFragmentViewModel>()
     fun parentActivity() = requireActivity() as SettingsActivity
 
     override fun onCreateView(
@@ -45,39 +45,39 @@ class EditSendReceiveRouteSettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = requireContext().composeView {
-        val existingRoutes = PrefManager.readSendReceiveRoutes(requireContext()).value
+        val existingRoutes = PrefManager.readEmailTemplates(requireContext()).value
         val mode =
-            if (parentActivity().viewModel.sendReceiveRouteToEdit in existingRoutes) Mode.Edit
+            if (parentActivity().viewModel.emailTemplateToEdit in existingRoutes) Mode.Edit
             else Mode.Add
-        EditSendReceiveRouteSettingsFragmentScreen(mode)
+        EditEmailTemplateSettingsFragmentScreen(mode)
     }
 }
 
 @Composable
-private fun EditSendReceiveRouteSettingsFragment.EditSendReceiveRouteSettingsFragmentScreen(mode: Mode) {
-    SettingsScreen("Edit Send Receive Route Settings") {
-        val sendReceiveRoute = viewModel.sendReceiveRoute.observeAsMutableState { // TODO add screen rotation test
-            parentActivity().viewModel.sendReceiveRouteToEdit ?: SendReceiveRoute(
-                suggestSendReceiveRouteLabel(requireContext()), "",
+private fun EditEmailTemplateSettingsFragment.EditEmailTemplateSettingsFragmentScreen(mode: Mode) {
+    SettingsScreen("Edit Email Template Settings") {
+        val emailTemplate = viewModel.emailTemplate.observeAsMutableState { // TODO add screen rotation test
+            parentActivity().viewModel.emailTemplateToEdit ?: EmailTemplate(
+                suggestEmailTemplateLabel(requireContext()), "",
                 SmtpCredential("", DEFAULT_SMTP_PORT, "", "")
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         viewModel.schema.forEach {
-            it.Composable(sendReceiveRoute, viewModel)
+            it.Composable(emailTemplate, viewModel)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Buttons(viewModel.schema, sendReceiveRoute, mode)
+        Buttons(viewModel.schema, emailTemplate, mode)
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-private fun EditSendReceiveRouteSettingsFragment.Buttons(
+private fun EditEmailTemplateSettingsFragment.Buttons(
     schema: List<Item>,
-    sendReceiveRoute: MutableState<SendReceiveRoute>,
+    emailTemplate: MutableState<EmailTemplate>,
     mode: Mode,
 ) {
     CenteredRow(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
@@ -100,14 +100,14 @@ private fun EditSendReceiveRouteSettingsFragment.Buttons(
             modifier = Modifier.weight(1f),
             onClick = {
                 if (schema.filterIsInstance<TextFieldItem<*>>().any { item ->
-                        item.getCurrentText(sendReceiveRoute.value).let { it.isBlank() || item.errorProvider(it) != null }
+                        item.getCurrentText(emailTemplate.value).let { it.isBlank() || item.errorProvider(it) != null }
                     }
                 ) {
                     viewModel.showErrorIfFieldIsEmpty.value = true
                 } else {
-                    PrefManager.writeSendReceiveRoutes(
+                    PrefManager.writeEmailTemplates(
                         requireContext(),
-                        PrefManager.readSendReceiveRoutes(requireContext()).value + listOf(sendReceiveRoute.value)
+                        PrefManager.readEmailTemplates(requireContext()).value + listOf(emailTemplate.value)
                     )
                     findNavController().navigateUp()
                 }
@@ -129,11 +129,11 @@ private fun EditSendReceiveRouteSettingsFragment.Buttons(
     }
 }
 
-class EditSendReceiveRouteSettingsFragmentViewModel(application: Application) : AndroidViewModel(application) {
-    val sendReceiveRoute: MutableLiveData<SendReceiveRoute> = MutableLiveData()
+class EditEmailTemplateSettingsFragmentViewModel(application: Application) : AndroidViewModel(application) {
+    val emailTemplate: MutableLiveData<EmailTemplate> = MutableLiveData()
     val showErrorIfFieldIsEmpty = mutableLiveDataOf(false)
     val schema: List<Item> = getSchema(
-        existingLabels = PrefManager.readSendReceiveRoutes(application).value.mapTo(mutableSetOf()) { it.label }
+        existingLabels = PrefManager.readEmailTemplates(application).value.mapTo(mutableSetOf()) { it.label }
     )
 }
 
@@ -141,8 +141,8 @@ private enum class Mode {
     Edit, Add
 }
 
-fun suggestSendReceiveRouteLabel(context: Context): String {
-    val existingLabels = PrefManager.readSendReceiveRoutes(context).value.mapTo(mutableSetOf()) { it.label }
+fun suggestEmailTemplateLabel(context: Context): String {
+    val existingLabels = PrefManager.readEmailTemplates(context).value.mapTo(mutableSetOf()) { it.label }
     return sequenceOf("Todo", "Work")
         .plus(generateSequence(0) { it + 1 }.map { "Todo$it" })
         .first { it !in existingLabels }
