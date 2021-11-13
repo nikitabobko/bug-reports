@@ -33,7 +33,7 @@ object LastUsedAppFeatureManager {
             context.readPref { appendAppNameThatSharedTheText.liveData }
         }
 
-    fun shouldAskForPermissions(context: Context) =
+    fun shouldAskForPermissions(context: Context) = // TODO finish subsystem
         if (isUsageAccessGranted(context)) {
             liveDataOf(false)
         } else {
