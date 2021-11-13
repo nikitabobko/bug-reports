@@ -6,33 +6,32 @@ import kotlin.reflect.KProperty1
 /**
  * Test - [bobko.todomail.util.LensTest]
  */
-class Lens<A : Any, B>(val getter: A.() -> B, val setter: A.(B) -> A) {
-    fun get(source: A): B = source.getter()
-    fun set(source: A, newValue: B): A = source.setter(newValue)
+class Lens<A : Any, B>(val getter: (obj: A) -> B, val setter: (obj: A, newValue: B) -> A) {
+    fun get(source: A): B = getter(source)
+    fun set(source: A, newValue: B): A = setter(source, newValue)
 }
 
 inline val <reified A : Any, B> KProperty1<A, B>.lens: Lens<A, B>
     get() {
         require(A::class.isData)
         val property = this
-        return Lens(property, { copy(property, it) })
+        return Lens(property, { obj, newValue -> obj.copy(property, newValue) })
     }
 
 fun <A : Any, B : Any, C : Any> Lens<A, B>.then(other: Lens<B, C>): Lens<A, C> = Lens(
-    {
-        val secondGetter = other.getter
-        getter().secondGetter()
-    },
-    {
-        val secondSetter = other.setter
-        setter(getter().secondSetter(it))
-    }
+    { obj -> other.getter(getter(obj)) },
+    { obj, newValue -> setter(obj, other.setter(getter(obj), newValue)) }
 )
 
 inline fun <A : Any, reified B : Any, C : Any> Lens<A, B>.then(crossinline other: B.() -> KProperty0<C>): Lens<A, C> {
     require(B::class.isData)
-    return then(Lens({ other().get() }, { copy(other(), it) }))
+    return then(
+        Lens(
+            { obj -> other(obj).get() },
+            { obj, newValue -> obj.copy(obj.other(), newValue) }
+        )
+    )
 }
 
 inline fun <reified A : Any, reified B : Any, C : Any> KProperty1<A, B>.then(crossinline other: B.() -> KProperty0<C>) =
-    lens.then(other)
+    this.lens.then(other)
