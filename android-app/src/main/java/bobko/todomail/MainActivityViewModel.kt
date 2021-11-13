@@ -32,6 +32,8 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         set(value) {
             if (_startedFrom == null) {
                 _startedFrom = value
+            } else {
+                error("The value is already initialized")
             }
         }
 
