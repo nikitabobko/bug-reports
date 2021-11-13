@@ -53,18 +53,21 @@ class MainActivity : ComponentActivity() {
         // depends on the device whether this call is required!
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
-        (intent.getSerializableExtra(STARTED_FROM) as? StartedFrom)?.let {
-            viewModel.startedFrom = it
-        }
+        (intent.getSerializableExtra(STARTED_FROM) as? StartedFrom)
+            ?.let {
+                viewModel.startedFrom = it
+            }
+            .orElse {
+                val sharedText = intent.takeIf { it?.action == Intent.ACTION_SEND }
+                    ?.getStringExtra(Intent.EXTRA_TEXT)
+                if (sharedText?.isNotBlank() == true) {
+                    viewModel.startedFrom = StartedFrom.Sharesheet
+                    val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
+                        ?: LastUsedAppFeatureManager.getLastUsedAppLabel(this)
+                    viewModel.prefillSharedText(sharedText, callerAppLabel)
+                }
+            }
 
-        val sharedText = intent.takeIf { it?.action == Intent.ACTION_SEND }
-            ?.getStringExtra(Intent.EXTRA_TEXT)
-        if (sharedText?.isNotBlank() == true) {
-            viewModel.startedFrom = StartedFrom.Sharesheet
-            val callerAppLabel = referrer?.host?.let { getAppLabelByPackageName(it) }
-                ?: LastUsedAppFeatureManager.getLastUsedAppLabel(this)
-            viewModel.prefillSharedText(sharedText, callerAppLabel)
-        }
 
         val routes = PrefManager.readSendReceiveRoutes(this@MainActivity)
         if (routes.value.count() == 0) {
@@ -112,11 +115,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val STARTED_FROM = "STARTED_FROM"
 
-        fun getIntent(context: Context, isStartedFromTile: Boolean): Intent {
+        fun getIntent(context: Context, startedFrom: StartedFrom): Intent {
             return Intent(context, MainActivity::class.java).apply {
-                if (isStartedFromTile) {
-                    putExtra(STARTED_FROM, StartedFrom.Tile)
-                }
+                putExtra(STARTED_FROM, startedFrom)
             }
         }
     }
