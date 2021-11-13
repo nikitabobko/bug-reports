@@ -11,10 +11,7 @@ class LensTest {
     data class Foo(val bar: Bar, val notDataClass: NotDataClass = NotDataClass(""))
     data class Bar(val text: String)
 
-    class NotDataClass(val text: String) {
-        override fun equals(other: Any?) = this === other
-        override fun hashCode(): Int = text.hashCode()
-    }
+    class NotDataClass(val text: String)
 
     @Test
     fun testSet() {
