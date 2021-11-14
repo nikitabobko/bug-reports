@@ -7,15 +7,33 @@ import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
+interface SharedPrefSerializer<T> {
+    fun serialize(editor: SharedPreferences.Editor, value: T)
+    fun deserialize(pref: SharedPreferences): T
+}
+
+class StringSharedPrefSerializer : SharedPrefSerializer<String> { // REPORT: Try calling Alt + Enter
+
+}
+
+fun <T> sharedPref(
+    serializer: (SharedPreferences.Editor, value: T) -> Unit,
+    deserializer: (SharedPreferences) -> T
+) = object : SharedPrefSerializer<T> {
+    override fun serialize(editor: SharedPreferences.Editor, value: T) = serializer(editor, value)
+    override fun deserialize(pref: SharedPreferences) = deserializer(pref)
+}
+
+fun stringSharedPref(defaultValue: String) {
+
+}
+
 sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
     private val clazz: Class<T>,
     private val key: String,
     private val defaultValue: T,
     private val ignoreIndex: Boolean
 ) : ReadOnlyProperty<Any?, Self> {
-    init {
-        allKeys.add(WeakReference(this))
-    }
 
     @MainThread
     protected fun getValueInternal(pref: SharedPreferences, index: Int): T {
@@ -49,16 +67,6 @@ sealed class AbstractPrefKey<T, Self : AbstractPrefKey<T, Self>>(
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>) = this as Self
-
-    companion object {
-        private val allKeys: MutableList<WeakReference<AbstractPrefKey<*, *>>> = ArrayList()
-
-        fun resetAllPreferences(editor: SharedPreferences.Editor) {
-            allKeys.forEach {
-
-            }
-        }
-    }
 }
 
 class PrefKey<T : Any>(clazz: Class<T>, key: String, defaultValue: T) :

@@ -1,5 +1,6 @@
 package bobko.todomail.model
 
+import androidx.activity.ComponentActivity
 import bobko.todomail.util.IndexedPrefKey
 import bobko.todomail.util.PrefReaderContext
 import bobko.todomail.util.PrefWriterContext
@@ -7,7 +8,7 @@ import bobko.todomail.util.PrefWriterContext
 data class EmailTemplate(
     val label: String,
     val sendTo: String,
-    val credential: SmtpCredential
+    val credential: EmailCredential
 ) {
     companion object {
         private val emailTemplateLabel: IndexedPrefKey<String> by IndexedPrefKey.delegate()
@@ -29,5 +30,9 @@ data class EmailTemplate(
                 SmtpCredential.write(this, index, emailTemplate?.credential)
             }
         }
+    }
+
+    fun sendEmail(activity: ComponentActivity, subject: String, body: String) {
+        credential.sendEmail(activity, sendTo, subject, body)
     }
 }

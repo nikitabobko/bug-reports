@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("com.adarshr.test-logger") version "3.0.0" // https://github.com/radarsh/gradle-test-logger-plugin
@@ -22,6 +24,10 @@ testlogger {
     showFailedStandardStreams = true
 }
 
+fun File.readProperty(propertyName: String): String = bufferedReader().use { reader ->
+    Properties().apply { load(reader) }.getProperty(propertyName)
+}
+
 android {
     compileSdk = 31
 
@@ -38,10 +44,30 @@ android {
         }
     }
 
+    val secretsDir = rootDir.resolve("todomail-secrets")
+    val releaseSigningConfig = if (secretsDir.isDirectory) {
+        logger.lifecycle("Release signing is enabled")
+        signingConfigs.create("release") {
+            keyAlias = secretsDir.resolve("jks.properties").readProperty("keyAlias")
+            keyPassword = secretsDir.resolve("jks.properties").readProperty("keyPassword")
+            storeFile = secretsDir.resolve("todomail.jks")
+            storePassword = secretsDir.resolve("jks.properties").readProperty("storePassword")
+        }
+    } else {
+        logger.lifecycle("Release signing is disabled")
+        null
+    }
     buildTypes {
         release {
+            signingConfig = releaseSigningConfig
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            signingConfig = releaseSigningConfig
         }
     }
     compileOptions {
@@ -62,6 +88,7 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/NOTICE.md"
             excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/DEPENDENCIES"
         }
     }
 }
@@ -69,16 +96,32 @@ android {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
 
-    implementation("androidx.core:core-ktx:1.6.0")
+    implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("com.google.android.material:material:1.4.0")
     implementation("androidx.compose.ui:ui:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.material:material:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.ui:ui-tooling-preview:${rootProject.extra["compose_version"]}")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.activity:activity-compose:1.4.0-rc01")
-    implementation("androidx.compose.runtime:runtime-livedata:1.1.0-alpha06")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
+    implementation("androidx.activity:activity-compose:1.4.0")
+    implementation("androidx.compose.runtime:runtime-livedata:1.1.0-beta02")
     implementation("androidx.preference:preference-ktx:1.1.1")
+
+    // Gmail API
+//    implementation("com.google.api-client:google-api-client:1.25.0")
+//    implementation("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
+//    implementation("com.google.apis:google-api-services-gmail:v1-rev83-1.23.0")
+
+    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
+    implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
+
+    // Login with Google
+    implementation("com.google.android.gms:play-services-auth:19.2.0")
+
+    // https://stackoverflow.com/a/60492942
+//    implementation("com.google.guava:guava:27.0.1-android")
+//    implementation("com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava")
 
     // JetPack navigation
     implementation("androidx.navigation:navigation-fragment-ktx:${rootProject.extra["nav_version"]}")

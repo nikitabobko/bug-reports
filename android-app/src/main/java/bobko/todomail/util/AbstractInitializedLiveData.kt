@@ -1,6 +1,7 @@
 package bobko.todomail.util
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.LiveData
@@ -34,6 +35,10 @@ fun <T : Any> mutableLiveDataOf(value: T): MutableInitializedLiveData<T> =
 @Composable
 fun <T : Any> AbstractInitializedLiveData<T, LiveData<T>>.observeAsState(): State<T> =
     liveData.observeAsState(value)
+
+@Composable
+fun <T : Any> MutableInitializedLiveData<T>.observeAsMutableState(): MutableState<T> =
+    liveData.observeAsMutableState { value }
 
 fun <T : Any, O : Any, R : Any> AbstractInitializedLiveData<T, LiveData<T>>.then(
     other: AbstractInitializedLiveData<O, LiveData<O>>,

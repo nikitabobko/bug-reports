@@ -47,6 +47,16 @@ sealed class Item {
     )
 }
 
+class CredentialsItem(val items: List<Item>) : Item() {
+    @Composable
+    override fun Composable(
+        emailTemplate: MutableState<EmailTemplate>,
+        viewModel: EditEmailTemplateSettingsFragmentViewModel
+    ) {
+
+    }
+}
+
 class TextDivider(val text: String) : Item() {
     @Composable
     override fun Composable(
@@ -91,7 +101,7 @@ private fun <T : Any> TextFieldItem<T>.TextFieldComposable(
             keyboardActions = KeyboardActions(
                 onNext = {
                     generateSequence(index + 1) { it + 1 }
-                        .firstNotNullOfOrNull { viewModel.schema.getOrNull(it)?.cast<TextFieldItem<*>>() }
+                        .firstNotNullOfOrNull { viewModel.schema.getOrNull(it) as? TextFieldItem<*> }
                         ?.focusRequester
                         ?.requestFocus()
                 },
@@ -242,12 +252,16 @@ class PasswordTextFieldItem() : TextFieldItem<String>(
     override val textFieldVisualTransformation: MutableState<VisualTransformation> =
         mutableStateOf(PasswordVisualTransformation())
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Composable(
         emailTemplate: MutableState<EmailTemplate>,
         viewModel: EditEmailTemplateSettingsFragmentViewModel
     ) {
         Column {
+            ListItem {
+                Text("suka")
+            }
             TextFieldComposable(emailTemplate, viewModel)
             Spacer(modifier = Modifier.height(8.dp))
             val onClick = {

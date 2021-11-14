@@ -24,15 +24,31 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
+//import bobko.todomail.login.GmailQuickstart
 import bobko.todomail.model.EmailTemplate
 import bobko.todomail.model.SmtpCredential
 import bobko.todomail.model.pref.PrefManager
 import bobko.todomail.settings.SettingsActivity
 import bobko.todomail.settings.SettingsScreen
-import bobko.todomail.util.CenteredRow
-import bobko.todomail.util.composeView
-import bobko.todomail.util.mutableLiveDataOf
-import bobko.todomail.util.observeAsMutableState
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
+import bobko.todomail.login.sendItSuka
+import bobko.todomail.util.*
+
+import com.google.android.gms.common.api.Scope
+import com.google.android.gms.tasks.RuntimeExecutionException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+//import com.google.api.services.gmail.GmailScopes
+//import com.google.api.services.gmail.GmailScopes
+//import com.google.api.services.gmail.GmailScopes
+import java.lang.IllegalStateException
+import java.util.concurrent.ThreadLocalRandom
+
 
 const val DEFAULT_SMTP_PORT = 25
 
@@ -51,17 +67,48 @@ class EditEmailTemplateSettingsFragment : Fragment() {
             else Mode.Add
         EditEmailTemplateSettingsFragmentScreen(mode)
     }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .setLogSessionId(ThreadLocalRandom.current().nextInt().toString())
+            .requestServerAuthCode("473994673878-hpbjfm51euanc0molpthbesm82u3eatl.apps.googleusercontent.com")
+            .requestScopes(Scope("https://www.googleapis.com/auth/gmail.send"))
+            .requestEmail()
+            .build()
+
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            try {
+                GoogleSignIn.getSignedInAccountFromIntent(it.data)
+                    .addOnCompleteListener {
+                        val account = it.result
+                        lifecycleScope.launch {
+                            withContext(Dispatchers.IO) {
+                                sendItSuka(account)
+                            }
+                        }
+                    }
+                    .addOnFailureListener {
+                        errorException(it)
+                    }
+            } catch (ex: RuntimeExecutionException) {
+                errorException(ex)
+            }
+        }.launch(GoogleSignIn.getClient(requireActivity(), gso).signInIntent)
+    }
 }
 
 @Composable
 private fun EditEmailTemplateSettingsFragment.EditEmailTemplateSettingsFragmentScreen(mode: Mode) {
     SettingsScreen("Edit Email Template Settings") {
-        val emailTemplate = viewModel.emailTemplate.observeAsMutableState { // TODO add screen rotation test
-            parentActivity().viewModel.emailTemplateToEdit ?: EmailTemplate(
-                suggestEmailTemplateLabel(requireContext()), "",
-                SmtpCredential("", DEFAULT_SMTP_PORT, "", "")
-            )
-        }
+        val emailTemplate =
+            viewModel.emailTemplate.observeAsMutableState { // TODO add screen rotation test
+                parentActivity().viewModel.emailTemplateToEdit ?: EmailTemplate(
+                    suggestEmailTemplateLabel(requireContext()), "",
+                    SmtpCredential("", DEFAULT_SMTP_PORT, "", "")
+                )
+            }
 
         Spacer(modifier = Modifier.height(16.dp))
         viewModel.schema.forEach {
@@ -100,14 +147,17 @@ private fun EditEmailTemplateSettingsFragment.Buttons(
             modifier = Modifier.weight(1f),
             onClick = {
                 if (schema.filterIsInstance<TextFieldItem<*>>().any { item ->
-                        item.getCurrentText(emailTemplate.value).let { it.isBlank() || item.errorProvider(it) != null }
+                        item.getCurrentText(emailTemplate.value)
+                            .let { it.isBlank() || item.errorProvider(it) != null }
                     }
                 ) {
                     viewModel.showErrorIfFieldIsEmpty.value = true
                 } else {
                     PrefManager.writeEmailTemplates(
                         requireContext(),
-                        PrefManager.readEmailTemplates(requireContext()).value + listOf(emailTemplate.value)
+                        PrefManager.readEmailTemplates(requireContext()).value + listOf(
+                            emailTemplate.value
+                        )
                     )
                     findNavController().navigateUp()
                 }
@@ -129,7 +179,8 @@ private fun EditEmailTemplateSettingsFragment.Buttons(
     }
 }
 
-class EditEmailTemplateSettingsFragmentViewModel(application: Application) : AndroidViewModel(application) {
+class EditEmailTemplateSettingsFragmentViewModel(application: Application) :
+    AndroidViewModel(application) {
     val emailTemplate: MutableLiveData<EmailTemplate> = MutableLiveData()
     val showErrorIfFieldIsEmpty = mutableLiveDataOf(false)
     val schema: List<Item> = getSchema(
@@ -142,7 +193,8 @@ private enum class Mode {
 }
 
 fun suggestEmailTemplateLabel(context: Context): String {
-    val existingLabels = PrefManager.readEmailTemplates(context).value.mapTo(mutableSetOf()) { it.label }
+    val existingLabels =
+        PrefManager.readEmailTemplates(context).value.mapTo(mutableSetOf()) { it.label }
     return sequenceOf("Todo", "Work")
         .plus(generateSequence(0) { it + 1 }.map { "Todo$it" })
         .first { it !in existingLabels }

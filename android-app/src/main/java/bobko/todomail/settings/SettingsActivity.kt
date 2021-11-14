@@ -75,4 +75,9 @@ val emailIconSize = 32.dp
 
 class SettingsActivityViewModel : ViewModel() {
     var emailTemplateToEdit: EmailTemplate? = null
+//    var emailTemplateToEdit: EmailTemplate? = null
+}
+
+sealed class CredentialsType {
+    object GoogleAccount : CredentialsType()
 }

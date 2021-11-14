@@ -15,6 +15,7 @@ import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.lang.IllegalStateException
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
@@ -37,11 +38,6 @@ fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
 
 fun Context.composeView(body: @Composable () -> Unit): View =
     ComposeView(this).apply { setContent(body) }
-
-@Composable
-fun <T : Any> MutableInitializedLiveData<T>.observeAsMutableState(): MutableState<T> {
-    return liveData.observeAsMutableState { value }
-}
 
 @Composable
 fun <T : Any> MutableLiveData<T>.observeAsMutableState(initial: () -> T): MutableState<T> {
@@ -78,9 +74,11 @@ fun <T : Any, V> T.copy(property: KProperty<V>, value: V): T {
     return copyMethod.callBy(mapOf(instanceParam to this, parameterToAmend to value)) as T
 }
 
-inline fun <reified T : Any> Any.cast(): T? = this as? T
+inline fun <reified T : Any> Any.cast(): T? = this as? T // TODO remove
 
 @Composable
 fun CenteredRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, content = content)
 }
+
+fun errorException(throwable: Throwable): Nothing = throw IllegalStateException(throwable)
