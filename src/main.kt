@@ -1,3 +1,5 @@
+import java.util.concurrent.Callable
+
 @OptIn(ExperimentalStdlibApi::class)
 fun main() {
 
@@ -11,3 +13,8 @@ fun main() {
     }
 
 }
+
+fun foo(): Callable<Unit> {
+    return Callable { Unit }
+}
+
